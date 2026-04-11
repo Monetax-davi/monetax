@@ -47,6 +47,7 @@ export default function OnboardingPage() {
   const [stepIndex, setStepIndex] = useState(0)
   const [respostas, setRespostas] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
+  const [done, setDone] = useState(false)
   const [userName, setUserName] = useState('')
   const [mounted, setMounted] = useState(false)
 
@@ -61,7 +62,7 @@ export default function OnboardingPage() {
   }, [router])
 
   const step = steps[stepIndex]
-  const progress = ((stepIndex) / steps.length) * 100
+  const progressPct = ((stepIndex + 1) / steps.length) * 100
 
   function selecionar(valor: string) {
     setRespostas(prev => ({ ...prev, [step.campo]: valor }))
@@ -75,13 +76,13 @@ export default function OnboardingPage() {
       return
     }
 
-    // Último step — salvar
+    // Último step — salvar e redirecionar
     setSaving(true)
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { router.push('/login'); return }
 
-    await supabase.from('profiles').upsert({
+    const { error } = await supabase.from('profiles').upsert({
       id: user.id,
       email: user.email,
       name: user.user_metadata?.name || userName,
@@ -92,10 +93,35 @@ export default function OnboardingPage() {
       updated_at: new Date().toISOString()
     })
 
-    router.push('/dashboard')
+    if (error) {
+      console.error('Erro ao salvar onboarding:', error)
+    }
+
+    setDone(true)
+    // Pequeno delay para mostrar estado de sucesso antes de redirecionar
+    setTimeout(() => {
+      router.push('/dashboard')
+    }, 800)
   }
 
   if (!mounted) return null
+
+  // Tela de sucesso antes do redirect
+  if (done) return (
+    <div style={{
+      minHeight: '100vh', background: 'var(--bg)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      flexDirection: 'column', gap: 20
+    }}>
+      <div style={{
+        width: 64, height: 64, borderRadius: '50%',
+        background: 'rgba(0,214,143,0.15)', border: '2px solid var(--green)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28
+      }}>✅</div>
+      <div className="font-display" style={{ fontSize: 22, fontWeight: 800 }}>Tudo pronto!</div>
+      <p style={{ color: 'var(--text-muted)', fontSize: 15 }}>Indo para o seu dashboard...</p>
+    </div>
+  )
 
   return (
     <div style={{
@@ -104,7 +130,7 @@ export default function OnboardingPage() {
       alignItems: 'center', justifyContent: 'center',
       padding: '24px', position: 'relative', overflow: 'hidden'
     }}>
-      {/* Glows */}
+      {/* Glow */}
       <div style={{
         position: 'fixed', top: '-10%', right: '-10%',
         width: '50vw', height: '50vw', maxWidth: 500,
@@ -123,13 +149,13 @@ export default function OnboardingPage() {
           Moneta<span style={{ color: 'var(--blue)' }}>X</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>{stepIndex + 1} de {steps.length}</span>
+          <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>
+            {stepIndex + 1} de {steps.length}
+          </span>
           <div style={{ width: 120, height: 4, background: 'rgba(255,255,255,0.08)', borderRadius: 999 }}>
             <div style={{
-              height: '100%', borderRadius: 999,
-              background: 'var(--blue)',
-              width: `${progress + (100 / steps.length)}%`,
-              transition: 'width 0.5s ease'
+              height: '100%', borderRadius: 999, background: 'var(--blue)',
+              width: `${progressPct}%`, transition: 'width 0.5s ease'
             }} />
           </div>
         </div>
@@ -168,7 +194,8 @@ export default function OnboardingPage() {
                   background: sel ? 'rgba(26,108,255,0.12)' : 'rgba(255,255,255,0.03)',
                   outline: sel ? '1.5px solid rgba(26,108,255,0.5)' : '1px solid rgba(255,255,255,0.07)',
                   cursor: 'pointer', textAlign: 'left', width: '100%',
-                  transition: 'all 0.18s', boxShadow: sel ? '0 0 20px rgba(26,108,255,0.12)' : 'none'
+                  transition: 'all 0.18s',
+                  boxShadow: sel ? '0 0 20px rgba(26,108,255,0.12)' : 'none'
                 }}
               >
                 <div style={{
@@ -181,7 +208,8 @@ export default function OnboardingPage() {
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{
-                    fontSize: 15, fontWeight: 600, color: sel ? '#fff' : 'var(--text)',
+                    fontSize: 15, fontWeight: 600,
+                    color: sel ? '#fff' : 'var(--text)',
                     fontFamily: 'Syne, sans-serif', marginBottom: 3
                   }}>
                     {opcao.titulo}
@@ -212,13 +240,17 @@ export default function OnboardingPage() {
               : 'rgba(255,255,255,0.05)',
             color: respostas[step.campo] ? '#fff' : 'var(--text-muted)',
             fontWeight: 700, fontSize: 15, border: 'none',
-            cursor: respostas[step.campo] ? 'pointer' : 'not-allowed',
+            cursor: respostas[step.campo] && !saving ? 'pointer' : 'not-allowed',
             fontFamily: 'Syne, sans-serif',
             boxShadow: respostas[step.campo] ? '0 0 28px rgba(26,108,255,0.35)' : 'none',
             transition: 'all 0.25s'
           }}
         >
-          {saving ? 'Configurando seu plano...' : stepIndex < steps.length - 1 ? 'Continuar →' : '🚀 Entrar no dashboard'}
+          {saving
+            ? '⏳ Salvando seu perfil...'
+            : stepIndex < steps.length - 1
+              ? 'Continuar →'
+              : '🚀 Entrar no dashboard'}
         </button>
 
         {/* Step dots */}
@@ -226,7 +258,7 @@ export default function OnboardingPage() {
           {steps.map((_, i) => (
             <div key={i} style={{
               width: i === stepIndex ? 24 : 6, height: 6, borderRadius: 999,
-              background: i === stepIndex ? 'var(--blue)' : 'rgba(255,255,255,0.15)',
+              background: i <= stepIndex ? 'var(--blue)' : 'rgba(255,255,255,0.15)',
               transition: 'all 0.3s'
             }} />
           ))}

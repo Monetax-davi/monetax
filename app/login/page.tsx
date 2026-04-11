@@ -19,21 +19,26 @@ function AuthContent() {
   const [sucesso, setSucesso] = useState('')
   const [step, setStep] = useState(0)
 
-  // Animated mount
   useEffect(() => {
     const t = setTimeout(() => setStep(1), 50)
     return () => clearTimeout(t)
   }, [])
 
-  const supabase = createClient()
+  // Atualiza modo quando searchParams muda
+  useEffect(() => {
+    if (modoParam === 'cadastro') setModo('cadastro')
+  }, [modoParam])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
     setErro('')
+    setSucesso('')
+
+    const supabase = createClient()
 
     if (modo === 'cadastro') {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password: senha,
         options: {
@@ -41,57 +46,89 @@ function AuthContent() {
           emailRedirectTo: `${window.location.origin}/auth/callback`
         }
       })
+
       if (error) {
-        setErro(error.message === 'User already registered' ? 'Email já cadastrado. Faça login.' : error.message)
-      } else {
-        setSucesso('Conta criada! Verifique seu email para confirmar. Você será redirecionado...')
-        setTimeout(() => router.push('/onboarding'), 2500)
+        if (error.message.includes('already registered') || error.message.includes('already been registered')) {
+          setErro('Email já cadastrado. Faça login abaixo.')
+          setModo('login')
+        } else if (error.message.includes('Password')) {
+          setErro('Senha fraca. Use pelo menos 6 caracteres.')
+        } else {
+          setErro(error.message)
+        }
+        setLoading(false)
+        return
       }
+
+      // Se email confirmation está desligado, o usuário já está logado
+      if (data.session) {
+        router.push('/onboarding')
+        return
+      }
+
+      // Email confirmation ligado
+      setSucesso('Conta criada! Verifique seu email para confirmar. Você pode prosseguir enquanto isso.')
+      setTimeout(() => router.push('/onboarding'), 2000)
+
     } else {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password: senha })
+
       if (error) {
-        setErro('Email ou senha incorretos.')
-      } else if (data.user) {
+        if (error.message.includes('Invalid login') || error.message.includes('invalid_credentials')) {
+          setErro('Email ou senha incorretos.')
+        } else if (error.message.includes('Email not confirmed')) {
+          setErro('Confirme seu email antes de fazer login. Verifique sua caixa de entrada.')
+        } else {
+          setErro(error.message)
+        }
+        setLoading(false)
+        return
+      }
+
+      if (data.user) {
         const { data: profile } = await supabase
           .from('profiles')
           .select('onboarding_completed')
           .eq('id', data.user.id)
           .single()
-        
+
         router.push(profile?.onboarding_completed ? '/dashboard' : '/onboarding')
       }
     }
+
     setLoading(false)
+  }
+
+  const inputStyle: React.CSSProperties = {
+    width: '100%', padding: '13px 15px', borderRadius: 10,
+    background: 'rgba(255,255,255,0.04)',
+    border: '1px solid rgba(255,255,255,0.09)',
+    color: '#fff', fontSize: 14, outline: 'none',
+    fontFamily: 'DM Sans, sans-serif', transition: 'border-color 0.2s'
   }
 
   return (
     <div style={{
-      minHeight: '100vh',
-      background: 'var(--bg)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      position: 'relative',
-      overflow: 'hidden',
-      padding: '24px'
+      minHeight: '100vh', background: 'var(--bg)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      position: 'relative', overflow: 'hidden', padding: '24px'
     }}>
       {/* Background glows */}
       <div style={{
         position: 'fixed', top: '-20%', left: '-10%',
-        width: '70vw', height: '70vw', maxWidth: 700, maxHeight: 700,
+        width: '70vw', height: '70vw', maxWidth: 700,
         borderRadius: '50%',
         background: 'radial-gradient(circle, rgba(26,108,255,0.07) 0%, transparent 65%)',
         pointerEvents: 'none'
       }} />
       <div style={{
         position: 'fixed', bottom: '-20%', right: '-10%',
-        width: '60vw', height: '60vw', maxWidth: 600, maxHeight: 600,
+        width: '60vw', height: '60vw', maxWidth: 600,
         borderRadius: '50%',
         background: 'radial-gradient(circle, rgba(0,214,143,0.05) 0%, transparent 65%)',
         pointerEvents: 'none'
       }} />
-
-      {/* Grid pattern */}
+      {/* Grid */}
       <div style={{
         position: 'fixed', inset: 0, pointerEvents: 'none',
         backgroundImage: 'linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px)',
@@ -108,17 +145,17 @@ function AuthContent() {
         {/* Logo */}
         <a href="/" style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          gap: 8, marginBottom: 36, textDecoration: 'none'
+          gap: 10, marginBottom: 36, textDecoration: 'none'
         }}>
           <div style={{
             width: 38, height: 38, borderRadius: 10,
             background: 'linear-gradient(135deg, #1a6cff, #0040c0)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 0 20px rgba(26,108,255,0.4)'
+            boxShadow: '0 0 20px rgba(26,108,255,0.4)', fontSize: 16
+          }}>⚡</div>
+          <span className="font-display" style={{
+            fontSize: 22, fontWeight: 800, color: '#fff', letterSpacing: '-0.5px'
           }}>
-            <span style={{ fontSize: 16 }}>⚡</span>
-          </div>
-          <span className="font-display" style={{ fontSize: 22, fontWeight: 800, color: '#fff', letterSpacing: '-0.5px' }}>
             Moneta<span style={{ color: 'var(--blue)' }}>X</span>
           </span>
         </a>
@@ -127,12 +164,11 @@ function AuthContent() {
         <div style={{
           background: 'rgba(12,17,32,0.95)',
           border: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: 20,
-          padding: '40px 36px',
+          borderRadius: 20, padding: '40px 36px',
           backdropFilter: 'blur(20px)',
           boxShadow: '0 24px 80px rgba(0,0,0,0.4), 0 0 0 1px rgba(26,108,255,0.05)'
         }}>
-          {/* Toggle */}
+          {/* Toggle login / cadastro */}
           <div style={{
             display: 'flex',
             background: 'rgba(255,255,255,0.04)',
@@ -162,7 +198,9 @@ function AuthContent() {
 
           {/* Heading */}
           <div style={{ marginBottom: 28 }}>
-            <h1 className="font-display" style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.5px', marginBottom: 6 }}>
+            <h1 className="font-display" style={{
+              fontSize: 24, fontWeight: 800, letterSpacing: '-0.5px', marginBottom: 6
+            }}>
               {modo === 'login' ? 'Bem-vindo de volta' : 'Comece sua jornada'}
             </h1>
             <p style={{ color: 'var(--text-muted)', fontSize: 14, lineHeight: 1.5 }}>
@@ -227,7 +265,6 @@ function AuthContent() {
               />
             </div>
 
-            {/* Erro / Sucesso */}
             {erro && (
               <div style={{
                 background: 'rgba(255,100,100,0.08)', border: '1px solid rgba(255,100,100,0.2)',
@@ -254,7 +291,9 @@ function AuthContent() {
               style={{
                 marginTop: 6,
                 padding: '15px 0', borderRadius: 12,
-                background: loading ? 'rgba(26,108,255,0.5)' : 'linear-gradient(135deg, #1a6cff 0%, #0050e6 100%)',
+                background: loading
+                  ? 'rgba(26,108,255,0.5)'
+                  : 'linear-gradient(135deg, #1a6cff 0%, #0050e6 100%)',
                 color: '#fff', fontWeight: 700, fontSize: 15, border: 'none',
                 cursor: loading ? 'not-allowed' : 'pointer',
                 fontFamily: 'Syne, sans-serif', letterSpacing: '-0.2px',
@@ -262,11 +301,14 @@ function AuthContent() {
                 transition: 'all 0.2s'
               }}
             >
-              {loading ? '...' : modo === 'login' ? 'Entrar na minha conta' : '⚡ Criar conta grátis'}
+              {loading
+                ? '⏳ Aguarde...'
+                : modo === 'login'
+                  ? 'Entrar na minha conta'
+                  : '⚡ Criar conta grátis'}
             </button>
           </form>
 
-          {/* Divisor */}
           <div style={{
             display: 'flex', alignItems: 'center', gap: 12, margin: '24px 0'
           }}>
@@ -275,7 +317,6 @@ function AuthContent() {
             <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.07)' }} />
           </div>
 
-          {/* Trocar modo */}
           <p style={{ textAlign: 'center', fontSize: 14, color: 'var(--text-muted)' }}>
             {modo === 'login' ? 'Não tem conta? ' : 'Já tem conta? '}
             <button
@@ -291,7 +332,6 @@ function AuthContent() {
           </p>
         </div>
 
-        {/* Footer note */}
         <p style={{
           textAlign: 'center', color: 'var(--text-muted)', fontSize: 12,
           marginTop: 20, lineHeight: 1.5
@@ -304,15 +344,6 @@ function AuthContent() {
       </div>
     </div>
   )
-}
-
-const inputStyle: React.CSSProperties = {
-  width: '100%', padding: '13px 15px', borderRadius: 10,
-  background: 'rgba(255,255,255,0.04)',
-  border: '1px solid rgba(255,255,255,0.09)',
-  color: '#fff', fontSize: 14,
-  outline: 'none', transition: 'border-color 0.2s',
-  fontFamily: 'DM Sans, sans-serif'
 }
 
 export default function LoginPage() {
