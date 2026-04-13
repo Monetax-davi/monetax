@@ -1,0 +1,1743 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MonetaX — GPS Financeiro</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #030508;
+  --navy: #07101f;
+  --card: #0a1628;
+  --card2: #0d1e36;
+  --a: #1a6cff;
+  --ab: #4d94ff;
+  --as: rgba(26,108,255,.09);
+  --w: #fff;
+  --w80: rgba(255,255,255,.8);
+  --w55: rgba(255,255,255,.55);
+  --w30: rgba(255,255,255,.30);
+  --w10: rgba(255,255,255,.1);
+  --w06: rgba(255,255,255,.06);
+  --bd: rgba(255,255,255,.09);
+  --bda: rgba(26,108,255,.28);
+  --ok: #00d68f;
+  --warn: #ff4444;
+  --gold: #f59e0b;
+  --f: 'Plus Jakarta Sans', sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+  --sidebar-w: 220px;
+  --sidebar-w-collapsed: 68px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--w); font-family: var(--f); min-height: 100vh; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+
+/* ─── BG ─── */
+.gbg { position: fixed; inset: 0; z-index: 0; pointer-events: none; background-image: linear-gradient(rgba(26,108,255,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(26,108,255,.018) 1px,transparent 1px); background-size: 56px 56px; }
+.glow1 { position: fixed; width: 700px; height: 700px; border-radius: 50%; background: radial-gradient(circle,rgba(26,108,255,.06) 0%,transparent 65%); top: -100px; left: -100px; pointer-events: none; z-index: 0; }
+.glow2 { position: fixed; width: 500px; height: 500px; border-radius: 50%; background: radial-gradient(circle,rgba(0,214,143,.035) 0%,transparent 65%); bottom: 0; right: 0; pointer-events: none; z-index: 0; }
+
+/* ─── SIDEBAR ─── */
+.sidebar {
+  position: fixed; left: 0; top: 0; bottom: 0;
+  width: var(--sidebar-w-collapsed);
+  background: rgba(7,16,31,.97);
+  border-right: 1px solid var(--bd);
+  display: flex; flex-direction: column; align-items: center;
+  padding: 22px 0; gap: 4px; z-index: 100;
+  transition: width .25s cubic-bezier(.4,0,.2,1), box-shadow .25s;
+  overflow: hidden;
+}
+.sidebar:hover, .sidebar.expanded {
+  width: var(--sidebar-w);
+  box-shadow: 4px 0 40px rgba(0,0,0,.4);
+}
+.logo-wrap {
+  width: 100%; display: flex; align-items: center;
+  padding: 0 13px; margin-bottom: 20px; gap: 10px; flex-shrink: 0;
+}
+.logo-hex {
+  width: 34px; height: 34px; min-width: 34px;
+  background: var(--a);
+  clip-path: polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 900;
+  box-shadow: 0 0 20px rgba(26,108,255,.5);
+  animation: hexglow 3s ease-in-out infinite;
+}
+@keyframes hexglow { 0%,100%{box-shadow:0 0 16px rgba(26,108,255,.5)}50%{box-shadow:0 0 36px rgba(26,108,255,.9),0 0 56px rgba(26,108,255,.25)} }
+.logo-name {
+  font-size: 15px; font-weight: 800; letter-spacing: -0.3px;
+  white-space: nowrap; opacity: 0; transform: translateX(-6px);
+  transition: opacity .2s .05s, transform .2s .05s;
+  pointer-events: none;
+}
+.sidebar:hover .logo-name, .sidebar.expanded .logo-name { opacity: 1; transform: translateX(0); }
+
+.nav-section { width: 100%; padding: 0 10px; }
+.nav-section-label {
+  font-size: 8px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--w30); padding: 10px 10px 5px;
+  white-space: nowrap; overflow: hidden;
+  opacity: 0; transition: opacity .15s;
+}
+.sidebar:hover .nav-section-label, .sidebar.expanded .nav-section-label { opacity: 1; }
+.ni {
+  width: 100%; height: 40px; border-radius: 10px;
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 11px;
+  color: var(--w55); cursor: pointer;
+  position: relative; transition: all .18s;
+  white-space: nowrap; overflow: hidden;
+}
+.ni:hover, .ni.on { background: var(--as); color: var(--ab); }
+.ni.on { color: var(--w); }
+.ni.on::after {
+  content:''; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+  width: 3px; height: 18px; background: var(--a); border-radius: 0 2px 2px 0;
+}
+.ni svg { flex-shrink: 0; width: 18px; height: 18px; }
+.ni-label {
+  font-size: 13px; font-weight: 600;
+  opacity: 0; transform: translateX(-4px);
+  transition: opacity .18s .03s, transform .18s .03s;
+}
+.sidebar:hover .ni-label, .sidebar.expanded .ni-label { opacity: 1; transform: translateX(0); }
+.sb-divider { width: calc(100% - 20px); height: 1px; background: var(--bd); margin: 6px 0; }
+.sb-bot { margin-top: auto; width: 100%; padding: 0 10px; display: flex; flex-direction: column; gap: 4px; }
+.av-wrap { display: flex; align-items: center; gap: 10px; padding: 10px 11px; border-radius: 10px; cursor: pointer; transition: all .18s; }
+.av-wrap:hover { background: var(--w06); }
+.av { width: 30px; height: 30px; min-width: 30px; border-radius: 50%; background: linear-gradient(135deg,var(--a),#00d68f); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; border: 2px solid rgba(255,255,255,.1); }
+.av-info { opacity: 0; transform: translateX(-4px); transition: opacity .18s, transform .18s; }
+.sidebar:hover .av-info, .sidebar.expanded .av-info { opacity: 1; transform: translateX(0); }
+.av-name { font-size: 12px; font-weight: 700; white-space: nowrap; }
+.av-plan { font-size: 10px; color: var(--w55); white-space: nowrap; }
+
+/* ─── MAIN ─── */
+.main {
+  margin-left: var(--sidebar-w-collapsed);
+  padding: 28px 32px;
+  min-height: 100vh;
+  position: relative; z-index: 2;
+  max-width: calc(1280px + var(--sidebar-w-collapsed));
+  transition: margin-left .25s cubic-bezier(.4,0,.2,1);
+}
+
+/* ─── TOPBAR ─── */
+.topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
+.pt-eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--w55); margin-bottom: 2px; }
+.pt-name { font-size: 22px; font-weight: 800; letter-spacing: -0.4px; }
+.tb-right { display: flex; align-items: center; gap: 10px; }
+.live { display: flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--ok); border: 1px solid rgba(0,214,143,.22); background: rgba(0,214,143,.06); padding: 6px 12px; border-radius: 100px; }
+.ldot { width: 5px; height: 5px; background: var(--ok); border-radius: 50%; animation: blink 1.4s step-end infinite; }
+@keyframes blink { 50%{opacity:0} }
+.btn-topbar { background: var(--card); border: 1px solid var(--bd); color: var(--w80); padding: 7px 14px; border-radius: 9px; font-size: 12px; font-family: var(--f); font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all .2s; }
+.btn-topbar:hover { border-color: var(--bda); }
+.nb { width: 36px; height: 36px; border-radius: 9px; background: var(--card); border: 1px solid var(--bd); display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; transition: all .2s; }
+.nb:hover { border-color: var(--bda); }
+.ndot { position: absolute; top: 6px; right: 6px; width: 7px; height: 7px; background: var(--warn); border-radius: 50%; border: 2px solid var(--bg); }
+
+/* ─── SKELETON LOADING ─── */
+.skeleton {
+  position: fixed; inset: 0; z-index: 999;
+  background: var(--bg); display: flex; flex-direction: column;
+  padding: 28px 32px; padding-left: calc(var(--sidebar-w-collapsed) + 32px);
+  gap: 20px; animation: fadeOut .3s 1.4s ease forwards;
+  pointer-events: none;
+}
+@keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
+.sk-topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.sk-block { background: var(--card); border-radius: 10px; animation: shimmer 1.4s ease infinite; }
+@keyframes shimmer {
+  0%,100% { opacity: .4; }
+  50% { opacity: .8; }
+}
+.sk-metrics { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; }
+.sk-row { display: grid; grid-template-columns: 1fr 340px; gap: 18px; }
+.sk-panel { border-radius: 14px; }
+
+/* ─── ALERT BANNER ─── */
+.alert-banner {
+  background: linear-gradient(135deg, rgba(255,68,68,.08) 0%, rgba(255,68,68,.02) 100%);
+  border: 1px solid rgba(255,68,68,.22); border-radius: 14px;
+  padding: 16px 20px; margin-bottom: 22px;
+  display: flex; align-items: center; gap: 14px;
+  animation: fadeUp .4s ease both;
+}
+.alert-icon-wrap {
+  width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
+  background: rgba(255,68,68,.1); border: 1px solid rgba(255,68,68,.18);
+  display: flex; align-items: center; justify-content: center;
+}
+.alert-icon-wrap svg { color: var(--warn); }
+.alert-body { flex: 1; }
+.alert-title { font-size: 14px; font-weight: 700; line-height: 1.35; }
+.alert-title strong { color: var(--warn); }
+.alert-sub { font-size: 11px; color: var(--w55); margin-top: 2px; }
+.alert-btn {
+  background: rgba(255,68,68,.1); border: 1px solid rgba(255,68,68,.22);
+  color: var(--warn); padding: 8px 16px; border-radius: 8px;
+  font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap;
+  font-family: var(--f); transition: all .2s; flex-shrink: 0;
+  display: flex; align-items: center; gap: 5px;
+}
+.alert-btn:hover { background: rgba(255,68,68,.18); }
+
+/* ─── MÉTRICAS ─── */
+.metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 22px; }
+.mc {
+  background: var(--card); border: 1px solid var(--bd); border-radius: 14px;
+  padding: 20px 20px 18px; position: relative; overflow: hidden; cursor: default;
+  transition: all .2s; animation: fadeUp .5s ease both;
+}
+.mc::before { content:''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent); }
+.mc:hover { border-color: var(--bda); transform: translateY(-1px); }
+.mc:nth-child(1){animation-delay:.05s}.mc:nth-child(2){animation-delay:.1s}.mc:nth-child(3){animation-delay:.15s}.mc:nth-child(4){animation-delay:.2s}
+.mc-icon-wrap {
+  width: 34px; height: 34px; border-radius: 9px; margin-bottom: 12px;
+  display: flex; align-items: center; justify-content: center;
+}
+.mc-icon-wrap.ok-bg { background: rgba(0,214,143,.1); border: 1px solid rgba(0,214,143,.15); color: var(--ok); }
+.mc-icon-wrap.warn-bg { background: rgba(255,68,68,.1); border: 1px solid rgba(255,68,68,.15); color: var(--warn); }
+.mc-icon-wrap.gold-bg { background: rgba(245,158,11,.1); border: 1px solid rgba(245,158,11,.15); color: var(--gold); }
+.mc-icon-wrap.blue-bg { background: rgba(26,108,255,.1); border: 1px solid rgba(26,108,255,.18); color: var(--ab); }
+.mc-lbl { font-size: 9px; font-weight: 700; letter-spacing: 1.8px; text-transform: uppercase; color: var(--w55); margin-bottom: 5px; }
+.mc-val { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; font-family: var(--mono); }
+.mc-val.ok { color: var(--ok); }
+.mc-val.warn { color: var(--warn); }
+.mc-val.gold { color: var(--gold); }
+.mc-sub { font-size: 10px; color: var(--w55); margin-top: 6px; }
+.mc-sub b { color: var(--w80); font-weight: 600; }
+
+/* ─── HERO ─── */
+.hero {
+  background: linear-gradient(130deg, rgba(26,108,255,.09) 0%, rgba(0,214,143,.03) 100%);
+  border: 1px solid var(--bda); border-radius: 16px;
+  padding: 24px 28px; margin-bottom: 22px; position: relative; overflow: hidden;
+  display: grid; grid-template-columns: 1fr auto; gap: 28px; align-items: center;
+  animation: fadeUp .5s .1s ease both;
+}
+.hero::before { content:''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg,transparent,rgba(77,148,255,.5),transparent); }
+.hero-eyebrow { font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--ab); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+.hero-title { font-size: 22px; font-weight: 800; letter-spacing: -0.4px; line-height: 1.25; margin-bottom: 12px; }
+.hero-title .hi { color: var(--ok); }
+.hero-title .lo { color: var(--warn); }
+.hero-facts { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.hero-fact { font-size: 12px; color: var(--w55); display: flex; align-items: center; gap: 5px; }
+.hero-fact b { color: var(--w80); font-weight: 600; }
+.hero-sep { width: 3px; height: 3px; border-radius: 50%; background: var(--w30); }
+.hero-ring { position: relative; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.ring-svg { width: 96px; height: 96px; }
+.rt { fill: none; stroke: rgba(255,255,255,.05); stroke-width: 8; }
+.rf { fill: none; stroke: var(--ok); stroke-width: 8; stroke-linecap: round; stroke-dasharray: 251; stroke-dashoffset: 251; animation: rdraw 1.6s .4s ease forwards; }
+@keyframes rdraw { to { stroke-dashoffset: 58; } }
+.rc { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.rc-pct { font-size: 22px; font-weight: 800; color: var(--ok); font-family: var(--mono); line-height: 1; }
+.rc-lbl { font-size: 8px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--w55); margin-top: 2px; }
+.status-pill { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; padding: 5px 12px; border-radius: 100px; background: rgba(0,214,143,.1); border: 1px solid rgba(0,214,143,.22); color: var(--ok); }
+.status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ok); animation: blink 2s step-end infinite; }
+
+/* ─── MAIN GRID ─── */
+.grid { display: grid; grid-template-columns: 1fr 340px; gap: 18px; margin-bottom: 18px; }
+
+/* ─── PANEL ─── */
+.panel { background: var(--card); border: 1px solid var(--bd); border-radius: 14px; padding: 20px; position: relative; overflow: hidden; animation: fadeUp .5s .2s ease both; }
+.panel::before { content:''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg,transparent,rgba(255,255,255,.07),transparent); }
+.ph { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+.ph-title { font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 7px; color: var(--w80); }
+.ph-title svg { color: var(--w55); }
+.ph-link { font-size: 11px; font-weight: 600; color: var(--ab); cursor: pointer; padding: 4px 10px; border-radius: 7px; border: 1px solid transparent; transition: all .2s; }
+.ph-link:hover { border-color: var(--bda); background: var(--as); }
+
+/* ─── FEED DE AÇÕES ─── */
+.feed-item { padding: 16px 0; border-bottom: 1px solid rgba(255,255,255,.04); animation: fadeUp .4s ease both; }
+.feed-item:last-child { border-bottom: none; padding-bottom: 0; }
+.fi-top { display: flex; align-items: flex-start; gap: 11px; margin-bottom: 11px; }
+.fi-icon { width: 36px; height: 36px; border-radius: 9px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.fi-warn { background: rgba(255,68,68,.1); border: 1px solid rgba(255,68,68,.18); color: var(--warn); }
+.fi-tip { background: rgba(26,108,255,.1); border: 1px solid rgba(26,108,255,.18); color: var(--ab); }
+.fi-ok { background: rgba(0,214,143,.1); border: 1px solid rgba(0,214,143,.18); color: var(--ok); }
+.fi-gold { background: rgba(245,158,11,.1); border: 1px solid rgba(245,158,11,.18); color: var(--gold); }
+.fi-body { flex: 1; }
+.fi-label { font-size: 9px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 3px; }
+.fi-label.urgent { color: var(--warn); }
+.fi-label.tip { color: var(--ab); }
+.fi-label.positive { color: var(--ok); }
+.fi-label.forecast { color: var(--gold); }
+.fi-title { font-size: 13px; font-weight: 700; line-height: 1.35; margin-bottom: 3px; }
+.fi-desc { font-size: 11px; color: var(--w55); line-height: 1.55; }
+.fi-actions { display: flex; gap: 7px; margin-left: 47px; flex-wrap: wrap; }
+.btn-action { padding: 7px 14px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; font-family: var(--f); border: 1px solid transparent; transition: all .18s; white-space: nowrap; }
+.btn-primary { background: var(--a); color: #fff; box-shadow: 0 2px 12px rgba(26,108,255,.25); }
+.btn-primary:hover { background: #1560e8; transform: translateY(-1px); }
+.btn-secondary { background: rgba(255,255,255,.04); color: var(--w80); border-color: var(--bd); }
+.btn-secondary:hover { border-color: var(--w30); background: rgba(255,255,255,.08); }
+.btn-warn { background: rgba(255,68,68,.1); color: var(--warn); border-color: rgba(255,68,68,.22); }
+.btn-warn:hover { background: rgba(255,68,68,.18); }
+
+/* ─── COLUNA DIREITA ─── */
+.right-col { display: flex; flex-direction: column; gap: 16px; }
+
+/* ─── FORECAST ─── */
+.forecast {
+  background: linear-gradient(135deg, rgba(26,108,255,.07), transparent);
+  border: 1px solid var(--bda); border-radius: 14px; padding: 20px;
+  position: relative; overflow: hidden;
+}
+.forecast::before { content:''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg,transparent,rgba(77,148,255,.45),transparent); }
+.fc-label { font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--ab); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+.fc-main { font-size: 15px; font-weight: 700; line-height: 1.4; margin-bottom: 16px; }
+.fc-main .pos { color: var(--ok); }
+.fc-main .neg { color: var(--warn); }
+.fc-track { height: 5px; background: rgba(255,255,255,.06); border-radius: 100px; overflow: hidden; margin-bottom: 6px; }
+.fc-fill { height: 100%; border-radius: 100px; }
+.fc-row { display: flex; justify-content: space-between; font-size: 9px; color: var(--w55); letter-spacing: .8px; margin-bottom: 16px; }
+.fc-divider { height: 1px; background: var(--bd); margin-bottom: 16px; }
+.fc-scenario { display: flex; align-items: center; gap: 10px; padding: 11px; background: rgba(255,255,255,.03); border-radius: 10px; border: 1px solid var(--bd); }
+.fc-sc-icon { width: 30px; height: 30px; border-radius: 8px; background: rgba(0,214,143,.1); border: 1px solid rgba(0,214,143,.15); display: flex; align-items: center; justify-content: center; color: var(--ok); flex-shrink: 0; }
+.fc-sc-title { font-size: 12px; font-weight: 700; color: var(--ok); }
+.fc-sc-sub { font-size: 10px; color: var(--w55); margin-top: 2px; }
+
+/* ─── METAS ─── */
+.goals-panel { }
+.gi { display: flex; align-items: center; gap: 10px; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,.04); }
+.gi:last-child { border-bottom: none; padding-bottom: 0; }
+.gi-icon-wrap { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.gi-info { flex: 1; min-width: 0; }
+.gi-name { font-size: 12px; font-weight: 700; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gi-track { height: 4px; background: rgba(255,255,255,.06); border-radius: 100px; overflow: hidden; }
+.gi-fill { height: 100%; border-radius: 100px; transition: width 0s; }
+.gi-right { text-align: right; flex-shrink: 0; }
+.gi-pct { font-size: 12px; font-weight: 700; font-family: var(--mono); }
+.gi-val { font-size: 9px; color: var(--w55); margin-top: 2px; white-space: nowrap; }
+
+/* ─── BOTTOM GRID ─── */
+.bgrid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; margin-bottom: 22px; }
+
+/* ─── TRANSAÇÕES ─── */
+.tx { display: flex; align-items: center; gap: 11px; padding: 11px 0; border-bottom: 1px solid rgba(255,255,255,.04); cursor: pointer; transition: all .18s; }
+.tx:last-child { border-bottom: none; padding-bottom: 0; }
+.tx:hover { padding-left: 4px; }
+.tx-ico { width: 36px; height: 36px; border-radius: 9px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,.04); border: 1px solid var(--bd); color: var(--w55); }
+.tx-info { flex: 1; min-width: 0; }
+.tx-name { font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tx-ins { font-size: 10px; margin-top: 2px; font-weight: 600; }
+.tx-ins.bad { color: rgba(255,68,68,.75); }
+.tx-ins.good { color: var(--ok); }
+.tx-ins.neutral { color: var(--w55); }
+.tx-r { text-align: right; flex-shrink: 0; }
+.txv { font-size: 13px; font-weight: 800; font-family: var(--mono); }
+.txv.exp { color: var(--warn); }
+.txv.inc { color: var(--ok); }
+.tx-dt { font-size: 9px; color: var(--w55); margin-top: 2px; }
+
+/* ─── DONUT ─── */
+.donut-wrap { display: flex; align-items: center; gap: 16px; }
+.dsv { width: 96px; height: 96px; flex-shrink: 0; }
+.dtrack { fill: none; stroke: rgba(255,255,255,.04); stroke-width: 14; }
+.dseg { fill: none; stroke-width: 14; stroke-linecap: butt; }
+.dc1{stroke:#4d94ff}.dc2{stroke:#00d68f}.dc3{stroke:#f59e0b}.dc4{stroke:#ff4444}.dc5{stroke:#a855f7}
+.dtxt { font-size: 12px; font-weight: 800; fill: #fff; text-anchor: middle; dominant-baseline: middle; }
+.dtxts { font-size: 7px; fill: rgba(255,255,255,.35); text-anchor: middle; dominant-baseline: middle; }
+.dleg { flex: 1; display: flex; flex-direction: column; gap: 9px; }
+.dli { display: flex; align-items: center; gap: 7px; cursor: pointer; transition: opacity .15s; }
+.dli:hover { opacity: .75; }
+.dld { width: 7px; height: 7px; border-radius: 2px; flex-shrink: 0; }
+.dll { font-size: 11px; color: var(--w55); flex: 1; }
+.dlv { font-size: 11px; font-weight: 700; font-family: var(--mono); }
+.dlp { font-size: 9px; color: var(--w55); margin-left: 3px; }
+
+/* ─── GRÁFICO DE BARRAS COM VALORES ─── */
+.chart-area { position: relative; }
+.chart-y { position: absolute; left: 0; top: 0; bottom: 24px; display: flex; flex-direction: column; justify-content: space-between; }
+.chart-y-label { font-size: 8px; color: var(--w30); font-family: var(--mono); text-align: right; width: 36px; }
+.chart-inner { margin-left: 42px; }
+.chart-grid-lines { position: absolute; left: 42px; right: 0; top: 0; bottom: 24px; }
+.chart-grid-line { position: absolute; left: 0; right: 0; height: 1px; background: rgba(255,255,255,.04); }
+.chart-bars-wrap { display: flex; align-items: flex-end; gap: 7px; height: 110px; }
+.cbc { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 0; cursor: pointer; position: relative; }
+.cbc:hover .cb-tooltip { opacity: 1; transform: translateY(-4px); }
+.cbb { width: 100%; border-radius: 5px 5px 0 0; background: linear-gradient(to top, rgba(26,108,255,.3), rgba(77,148,255,.55)); transition: background .2s; }
+.cbb:hover, .cbc:hover .cbb { background: linear-gradient(to top, var(--a), var(--ab)); }
+.cbb.cur { background: linear-gradient(to top, var(--a), #6aa8ff); box-shadow: 0 0 14px rgba(26,108,255,.3); }
+.cb-lbl { font-size: 9px; color: var(--w55); padding-top: 6px; }
+.cb-lbl.cur { color: var(--ab); font-weight: 700; }
+.cb-tooltip {
+  position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%) translateY(0);
+  background: var(--card2); border: 1px solid var(--bd); padding: 5px 9px; border-radius: 7px;
+  font-size: 10px; font-weight: 700; font-family: var(--mono); white-space: nowrap;
+  opacity: 0; transition: opacity .15s, transform .15s; pointer-events: none; z-index: 10;
+}
+.cb-delta { font-size: 8px; font-weight: 600; margin-top: 2px; }
+.cb-delta.up { color: var(--ok); }
+.cb-delta.down { color: var(--warn); }
+.chart-x-labels { display: flex; gap: 7px; margin-left: 42px; margin-top: 4px; }
+.chart-x-label { flex: 1; text-align: center; font-size: 9px; color: var(--w55); }
+.chart-x-label.cur { color: var(--ab); font-weight: 700; }
+
+/* ─── UPGRADE PRO (único, no final) ─── */
+.upgrade {
+  background: linear-gradient(130deg, rgba(26,108,255,.1) 0%, rgba(0,214,143,.04) 100%);
+  border: 1px solid var(--bda); border-radius: 16px; padding: 28px 32px;
+  position: relative; overflow: hidden; animation: fadeUp .5s .4s ease both;
+  display: grid; grid-template-columns: 1fr auto; gap: 32px; align-items: center;
+}
+.upgrade::before { content:''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg,transparent,rgba(77,148,255,.6),transparent); }
+.up-badge { font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--gold); background: rgba(245,158,11,.1); border: 1px solid rgba(245,158,11,.2); padding: 4px 11px; border-radius: 100px; display: inline-flex; align-items: center; gap: 5px; margin-bottom: 10px; }
+.up-title { font-size: 20px; font-weight: 800; letter-spacing: -0.3px; line-height: 1.25; margin-bottom: 6px; }
+.up-sub { font-size: 12px; color: var(--w55); line-height: 1.6; max-width: 520px; }
+.up-feats { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 16px; }
+.uf { font-size: 11px; color: var(--w80); display: flex; align-items: center; gap: 6px; font-weight: 500; background: rgba(255,255,255,.04); border: 1px solid var(--bd); padding: 5px 11px; border-radius: 100px; }
+.uf svg { width: 12px; height: 12px; color: var(--ab); }
+.up-cta { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.up-btn { padding: 14px 28px; border-radius: 11px; background: linear-gradient(135deg,var(--a),#0d52cc); border: none; color: #fff; font-size: 14px; font-weight: 800; font-family: var(--f); cursor: pointer; position: relative; overflow: hidden; box-shadow: 0 4px 24px rgba(26,108,255,.35); transition: all .2s; letter-spacing: -0.1px; white-space: nowrap; }
+.up-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 36px rgba(26,108,255,.55); }
+.up-btn .sh { position: absolute; top:-50%; left:-60%; width:40%; height:200%; background:linear-gradient(105deg,transparent,rgba(255,255,255,.15),transparent); transform:skewX(-15deg); animation:sh 4s 2s infinite; }
+@keyframes sh { 0%,100%{left:-60%}40%{left:130%} }
+.up-note { font-size: 10px; color: var(--w55); text-align: center; }
+.up-note b { color: var(--w80); }
+
+/* ─── EMPTY STATE ─── */
+.empty-state {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 40px 20px; gap: 10px; text-align: center;
+}
+.empty-icon { width: 48px; height: 48px; border-radius: 14px; background: rgba(255,255,255,.04); border: 1px solid var(--bd); display: flex; align-items: center; justify-content: center; color: var(--w30); margin-bottom: 4px; }
+.empty-title { font-size: 13px; font-weight: 700; color: var(--w80); }
+.empty-sub { font-size: 11px; color: var(--w55); max-width: 200px; line-height: 1.5; }
+
+/* ════════════════════════════════════════
+   COPILOTO IA — INTEGRAÇÃO
+════════════════════════════════════════ */
+
+/* FAB */
+.copiloto-fab {
+  position: fixed; bottom: 28px; right: 28px; z-index: 500;
+  width: 54px; height: 54px; border-radius: 16px;
+  background: linear-gradient(135deg, var(--a), #0044cc);
+  border: 1px solid rgba(77,148,255,.4);
+  box-shadow: 0 4px 28px rgba(26,108,255,.45);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all .22s;
+  animation: hexglow 3s ease-in-out infinite;
+}
+.copiloto-fab:hover { transform: translateY(-3px) scale(1.05); box-shadow: 0 8px 40px rgba(26,108,255,.6); }
+.copiloto-fab svg { width: 22px; height: 22px; color: #fff; }
+.copiloto-fab-label {
+  position: absolute; right: 62px; top: 50%; transform: translateY(-50%);
+  background: var(--card2); border: 1px solid var(--bd);
+  padding: 5px 12px; border-radius: 8px;
+  font-size: 12px; font-weight: 700; white-space: nowrap; color: var(--w80);
+  opacity: 0; pointer-events: none; transition: opacity .2s;
+  box-shadow: 0 4px 16px rgba(0,0,0,.4);
+}
+.copiloto-fab-label::after {
+  content:''; position: absolute; right: -5px; top: 50%; transform: translateY(-50%);
+  width: 8px; height: 8px; background: var(--card2);
+  border-right: 1px solid var(--bd); border-top: 1px solid var(--bd);
+  transform: translateY(-50%) rotate(45deg);
+}
+.copiloto-fab:hover .copiloto-fab-label { opacity: 1; }
+.fab-notif {
+  position: absolute; top: -4px; right: -4px;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: var(--warn); border: 2px solid var(--bg);
+  font-size: 9px; font-weight: 800; display: flex; align-items: center; justify-content: center;
+  animation: pulse-warn 2s ease-in-out infinite;
+}
+@keyframes pulse-warn { 0%,100%{box-shadow:0 0 0 0 rgba(255,68,68,.4)} 50%{box-shadow:0 0 0 6px rgba(255,68,68,0)} }
+
+/* OVERLAY */
+.copiloto-overlay {
+  position: fixed; inset: 0; z-index: 600;
+  background: rgba(0,0,0,.5); backdrop-filter: blur(3px);
+  opacity: 0; pointer-events: none; transition: opacity .3s;
+}
+.copiloto-overlay.open { opacity: 1; pointer-events: all; }
+
+/* DRAWER */
+.copiloto-drawer {
+  position: fixed; top: 0; right: 0; bottom: 0; z-index: 700;
+  width: 420px; max-width: 100vw;
+  background: var(--navy);
+  border-left: 1px solid var(--bd);
+  display: flex; flex-direction: column;
+  transform: translateX(100%);
+  transition: transform .32s cubic-bezier(.4,0,.2,1);
+  box-shadow: -8px 0 60px rgba(0,0,0,.6);
+}
+.copiloto-drawer.open { transform: translateX(0); }
+
+/* DRAWER HEADER */
+.cpd-header {
+  padding: 18px 20px 16px;
+  border-bottom: 1px solid var(--bd);
+  display: flex; align-items: center; gap: 12px;
+  flex-shrink: 0; position: relative;
+}
+.cpd-hex {
+  width: 36px; height: 36px; min-width: 36px; border-radius: 10px;
+  background: linear-gradient(135deg, var(--a), #0044cc);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 16px rgba(26,108,255,.4);
+}
+.cpd-hex svg { width: 16px; height: 16px; color: #fff; }
+.cpd-title { font-size: 14px; font-weight: 800; letter-spacing: -0.2px; }
+.cpd-sub { font-size: 10px; color: var(--w55); margin-top: 1px; display: flex; align-items: center; gap: 5px; }
+.cpd-live-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--ok); animation: blink 1.4s step-end infinite; }
+.cpd-close {
+  margin-left: auto; width: 30px; height: 30px; border-radius: 8px;
+  background: rgba(255,255,255,.04); border: 1px solid var(--bd);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all .18s; color: var(--w55); font-size: 16px;
+  flex-shrink: 0;
+}
+.cpd-close:hover { border-color: var(--w30); color: var(--w); }
+
+/* TABS */
+.cpd-tabs {
+  display: flex; border-bottom: 1px solid var(--bd);
+  flex-shrink: 0; background: rgba(0,0,0,.2);
+}
+.cpd-tab {
+  flex: 1; padding: 10px 8px; font-size: 11px; font-weight: 700;
+  color: var(--w55); cursor: pointer; transition: all .18s;
+  border-bottom: 2px solid transparent; text-align: center; letter-spacing: .3px;
+}
+.cpd-tab:hover { color: var(--w80); }
+.cpd-tab.on { color: var(--ab); border-bottom-color: var(--a); }
+
+/* PANEL */
+.cpd-panel { display: none; flex: 1; flex-direction: column; overflow: hidden; }
+.cpd-panel.on { display: flex; }
+
+/* ── CHAT ── */
+.cpd-msgs {
+  flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 14px;
+  scrollbar-width: thin; scrollbar-color: var(--bd) transparent;
+}
+.cm { display: flex; gap: 9px; animation: fadeUp .28s ease both; }
+.cm.user { flex-direction: row-reverse; }
+.cm-av {
+  width: 28px; height: 28px; min-width: 28px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 800; flex-shrink: 0; margin-top: 2px;
+}
+.cm-av.ai { background: linear-gradient(135deg,var(--a),#0044cc); color: #fff; }
+.cm-av.hu { background: linear-gradient(135deg,#1a2740,#0d1830); border: 1px solid var(--bd); color: var(--w55); font-size: 10px; }
+.cm-wrap { display: flex; flex-direction: column; gap: 3px; max-width: 85%; }
+.cm.user .cm-wrap { align-items: flex-end; }
+.cm-name { font-size: 10px; color: var(--w30); font-weight: 600; }
+.cm-bubble {
+  padding: 10px 13px; border-radius: 12px;
+  font-size: 12.5px; line-height: 1.65;
+}
+.cm.ai .cm-bubble { background: var(--card); border: 1px solid var(--bd); border-top-left-radius: 3px; }
+.cm.user .cm-bubble { background: rgba(26,108,255,.15); border: 1px solid rgba(26,108,255,.25); border-top-right-radius: 3px; color: var(--w80); }
+.cm-bubble strong { color: var(--ok); font-weight: 700; }
+.cm-bubble em { color: var(--warn); font-style: normal; }
+
+.typing-wrap { display: flex; gap: 9px; align-items: flex-start; animation: fadeUp .28s ease; }
+.typing-bubble { background: var(--card); border: 1px solid var(--bd); border-radius: 12px; border-top-left-radius: 3px; padding: 12px 16px; display: flex; gap: 4px; align-items: center; }
+.td { width: 6px; height: 6px; border-radius: 50%; background: var(--ab); animation: bounce 1.2s ease-in-out infinite; }
+.td:nth-child(2){animation-delay:.2s}.td:nth-child(3){animation-delay:.4s}
+@keyframes bounce { 0%,60%,100%{transform:translateY(0);opacity:.5} 30%{transform:translateY(-5px);opacity:1} }
+
+.cpd-suggestions { padding: 10px 16px 0; display: flex; flex-wrap: wrap; gap: 6px; flex-shrink: 0; }
+.cpd-chip {
+  background: rgba(26,108,255,.08); border: 1px solid rgba(26,108,255,.2);
+  border-radius: 20px; padding: 5px 12px; font-size: 11px; color: var(--ab);
+  cursor: pointer; transition: all .18s; white-space: nowrap; font-weight: 600;
+}
+.cpd-chip:hover { background: rgba(26,108,255,.15); border-color: var(--a); }
+
+.cpd-input-wrap {
+  padding: 14px 16px; border-top: 1px solid var(--bd);
+  display: flex; gap: 8px; align-items: flex-end; flex-shrink: 0;
+}
+.cpd-input {
+  flex: 1; background: var(--card); border: 1px solid var(--bd); border-radius: 10px;
+  padding: 10px 13px; color: var(--w); font-family: var(--f); font-size: 13px;
+  resize: none; outline: none; min-height: 42px; max-height: 100px;
+  line-height: 1.5; transition: border-color .18s;
+}
+.cpd-input:focus { border-color: var(--bda); }
+.cpd-input::placeholder { color: var(--w30); }
+.cpd-send {
+  width: 40px; height: 40px; min-width: 40px; border-radius: 10px;
+  background: var(--a); border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .18s; color: #fff; flex-shrink: 0;
+}
+.cpd-send:hover { background: var(--ab); transform: scale(1.06); }
+.cpd-send:disabled { background: var(--card); cursor: not-allowed; transform: none; color: var(--w30); }
+
+/* ── SIMULADOR ── */
+.cpd-sim { flex: 1; overflow-y: auto; padding: 16px; scrollbar-width: thin; scrollbar-color: var(--bd) transparent; }
+.sim-field { margin-bottom: 13px; }
+.sim-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--w55); margin-bottom: 5px; display: block; }
+.sim-input {
+  width: 100%; background: var(--card); border: 1px solid var(--bd);
+  border-radius: 9px; padding: 9px 13px; color: var(--w);
+  font-family: var(--f); font-size: 13px; outline: none;
+  transition: border-color .18s;
+}
+.sim-input:focus { border-color: var(--bda); }
+.sim-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.debt-entry-c {
+  background: rgba(255,255,255,.03); border: 1px solid var(--bd);
+  border-radius: 10px; padding: 12px; margin-bottom: 10px; position: relative;
+}
+.drc-btn {
+  position: absolute; top: 9px; right: 9px; background: none; border: none;
+  color: var(--w30); cursor: pointer; font-size: 15px; transition: color .15s;
+}
+.drc-btn:hover { color: var(--warn); }
+.sim-add-btn {
+  width: 100%; padding: 9px; background: rgba(26,108,255,.07);
+  border: 1px dashed rgba(26,108,255,.25); border-radius: 9px;
+  color: var(--ab); font-size: 12px; font-weight: 700; font-family: var(--f);
+  cursor: pointer; transition: all .18s; margin-bottom: 14px;
+}
+.sim-add-btn:hover { background: rgba(26,108,255,.12); }
+.sim-run-btn {
+  width: 100%; padding: 13px; background: linear-gradient(135deg,var(--a),#0044cc);
+  border: none; border-radius: 10px; color: #fff;
+  font-size: 13px; font-weight: 800; font-family: var(--f); cursor: pointer;
+  transition: all .2s; box-shadow: 0 3px 16px rgba(26,108,255,.3);
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+}
+.sim-run-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(26,108,255,.5); }
+.sim-run-btn:disabled { background: var(--card); color: var(--w30); cursor: not-allowed; transform: none; box-shadow: none; }
+.sim-result-box {
+  margin-top: 16px; padding: 14px; background: var(--card);
+  border: 1px solid var(--bd); border-radius: 12px;
+  font-size: 12.5px; line-height: 1.7; color: var(--w80);
+}
+.sim-result-box h4 { font-size: 13px; color: var(--ab); margin-bottom: 10px; font-weight: 800; }
+.sim-result-box strong { color: var(--ok); }
+.sim-spin { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.15); border-top-color: #fff; border-radius: 50%; animation: spn 0.7s linear infinite; }
+@keyframes spn { to { transform:rotate(360deg); } }
+
+/* FEED ITEM LOADING SHIMMER */
+.fi-shimmer { display: flex; flex-direction: column; gap: 8px; padding: 16px 0; border-bottom: 1px solid rgba(255,255,255,.04); }
+.sh-line { height: 10px; border-radius: 5px; background: var(--card2); animation: shimmer 1.4s ease infinite; }
+.sh-line.short { width: 40%; height: 8px; }
+.sh-line.title { width: 70%; height: 13px; }
+
+@keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+.empty-btn { margin-top: 4px; background: var(--as); border: 1px solid var(--bda); color: var(--ab); padding: 7px 16px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; font-family: var(--f); transition: all .2s; }
+.empty-btn:hover { background: rgba(26,108,255,.15); }
+
+/* ─── BOTTOM NAV MOBILE ─── */
+.bnav { display:none; position:fixed; bottom:0; left:0; right:0; background:rgba(7,16,31,.97); border-top:1px solid var(--bd); padding:10px 0 18px; justify-content:space-around; z-index:100; }
+.bni { display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--w55); cursor:pointer; padding: 0 10px; }
+.bni.on { color:var(--ab); }
+.bni span { font-size:9px; font-weight:700; }
+.bni svg { width:20px; height:20px; }
+
+/* ─── ANIMAÇÕES ─── */
+@keyframes fadeUp { from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)} }
+
+/* ─── SCROLLBAR ─── */
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.07);border-radius:100px}
+
+/* ─── RESPONSIVE ─── */
+@media(max-width:1100px) {
+  .bgrid { grid-template-columns:1fr 1fr; }
+  .grid { grid-template-columns:1fr; }
+  .upgrade { grid-template-columns:1fr; }
+  .up-cta { align-items: flex-start; }
+}
+@media(max-width:768px) {
+  :root { --sidebar-w-collapsed: 0px; }
+  .main { margin-left:0; padding:16px; padding-bottom:76px; }
+  .sidebar { display:none; }
+  .metrics { grid-template-columns:1fr 1fr; gap:10px; }
+  .hero { grid-template-columns:1fr; }
+  .bgrid { grid-template-columns:1fr; }
+  .bnav { display:flex!important; }
+  .upgrade { padding: 20px; }
+  .sk-metrics { grid-template-columns:1fr 1fr; }
+  .sk-row { grid-template-columns:1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="gbg"></div>
+<div class="glow1"></div>
+<div class="glow2"></div>
+
+<!-- SKELETON LOADING -->
+<div class="skeleton" id="skeleton">
+  <div class="sk-topbar">
+    <div class="sk-block" style="width:160px;height:40px;"></div>
+    <div style="display:flex;gap:10px">
+      <div class="sk-block" style="width:80px;height:34px;border-radius:100px;"></div>
+      <div class="sk-block" style="width:110px;height:34px;"></div>
+      <div class="sk-block" style="width:34px;height:34px;"></div>
+    </div>
+  </div>
+  <div class="sk-block" style="height:58px;border-radius:14px;"></div>
+  <div class="sk-metrics">
+    <div class="sk-block sk-panel" style="height:110px;"></div>
+    <div class="sk-block sk-panel" style="height:110px;"></div>
+    <div class="sk-block sk-panel" style="height:110px;"></div>
+    <div class="sk-block sk-panel" style="height:110px;"></div>
+  </div>
+  <div class="sk-block" style="height:100px;border-radius:16px;"></div>
+  <div class="sk-row">
+    <div class="sk-block sk-panel" style="height:280px;"></div>
+    <div style="display:flex;flex-direction:column;gap:16px;">
+      <div class="sk-block sk-panel" style="height:130px;"></div>
+      <div class="sk-block sk-panel" style="height:130px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="logo-wrap">
+    <div class="logo-hex">M</div>
+    <span class="logo-name">MonetaX</span>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-label">Principal</div>
+    <div class="ni on" onclick="setNav(this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      <span class="ni-label">Dashboard</span>
+    </div>
+    <div class="ni" onclick="setNav(this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+      <span class="ni-label">Transações</span>
+    </div>
+    <div class="ni" onclick="setNav(this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      <span class="ni-label">Relatórios</span>
+    </div>
+    <div class="ni" onclick="setNav(this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <span class="ni-label">Metas</span>
+    </div>
+  </div>
+
+  <div class="sb-divider"></div>
+
+  <div class="nav-section">
+    <div class="nav-section-label">Inteligência</div>
+    <div class="ni" onclick="setNav(this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/><path d="M22 2 12 12"/></svg>
+      <span class="ni-label">IA Copiloto</span>
+    </div>
+  </div>
+
+  <div class="sb-bot">
+    <div class="sb-divider" style="margin:0 0 4px;"></div>
+    <div class="ni" onclick="setNav(this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+      <span class="ni-label">Configurações</span>
+    </div>
+    <div class="av-wrap">
+      <div class="av">D</div>
+      <div class="av-info">
+        <div class="av-name">Davi</div>
+        <div class="av-plan">Plano Free</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<main class="main">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="pt">
+      <div class="pt-eyebrow">Março 2025</div>
+      <div class="pt-name">Olá, Davi</div>
+    </div>
+    <div class="tb-right">
+      <div class="live"><div class="ldot"></div>Ao vivo</div>
+      <button class="btn-topbar">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Mar 2025
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="nb">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <div class="ndot"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ALERTA PRINCIPAL -->
+  <div class="alert-banner">
+    <div class="alert-icon-wrap">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    </div>
+    <div class="alert-body">
+      <div class="alert-title">Se continuar assim, você perde <strong>R$ 3.360 esse ano</strong> só com gastos evitáveis</div>
+      <div class="alert-sub">Delivery + assinaturas esquecidas estão custando R$ 280/mês — o equivalente a uma viagem.</div>
+    </div>
+    <button class="alert-btn" onclick="this.innerHTML='<svg width=\'14\' height=\'14\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'currentColor\' stroke-width=\'2\'><polyline points=\'20 6 9 17 4 12\'></polyline></svg> Analisando...'">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      Ver o que cortar
+    </button>
+  </div>
+
+  <!-- MÉTRICAS -->
+  <div class="metrics">
+    <div class="mc">
+      <div class="mc-icon-wrap ok-bg">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      </div>
+      <div class="mc-lbl">Dinheiro Livre Real</div>
+      <div class="mc-val ok">R$ 1.240</div>
+      <div class="mc-sub">Livre pra gastar <b>sem culpa</b></div>
+    </div>
+    <div class="mc">
+      <div class="mc-icon-wrap warn-bg">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+      </div>
+      <div class="mc-lbl">Taxa de Desperdício</div>
+      <div class="mc-val warn">22%</div>
+      <div class="mc-sub">R$ <b>280/mês</b> evitáveis</div>
+    </div>
+    <div class="mc">
+      <div class="mc-icon-wrap gold-bg">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
+      <div class="mc-lbl">Risco Financeiro</div>
+      <div class="mc-val gold">Baixo</div>
+      <div class="mc-sub">1 alerta <b>ativo</b> agora</div>
+    </div>
+    <div class="mc">
+      <div class="mc-icon-wrap blue-bg">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+      </div>
+      <div class="mc-lbl">Poder de Investir</div>
+      <div class="mc-val ok">R$ 300</div>
+      <div class="mc-sub">Disponível <b>este mês</b></div>
+    </div>
+  </div>
+
+  <!-- HERO SAÚDE -->
+  <div class="hero">
+    <div>
+      <div class="hero-eyebrow">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Diagnóstico MonetaX · Atualizado agora
+      </div>
+      <div class="hero-title">Você ainda pode gastar <span class="hi">R$ 1.240</span><br>este mês sem se comprometer</div>
+      <div class="hero-facts">
+        <div class="hero-fact">Saldo total <b>R$ 8.340</b></div>
+        <div class="hero-sep"></div>
+        <div class="hero-fact">Fixos <b>R$ 2.600</b></div>
+        <div class="hero-sep"></div>
+        <div class="hero-fact">Projeção março <b style="color:var(--ok)">+R$ 620</b></div>
+      </div>
+    </div>
+    <div class="hero-ring">
+      <div style="position:relative">
+        <svg class="ring-svg" viewBox="0 0 100 100">
+          <circle class="rt" cx="50" cy="50" r="40"/>
+          <circle class="rf" cx="50" cy="50" r="40" transform="rotate(-90 50 50)"/>
+        </svg>
+        <div class="rc"><div class="rc-pct">77%</div><div class="rc-lbl">Saúde</div></div>
+      </div>
+      <div class="status-pill"><div class="status-dot"></div> Saudável</div>
+    </div>
+  </div>
+
+  <!-- GRID FEED + COLUNA DIREITA -->
+  <div class="grid">
+
+    <!-- FEED DE AÇÕES -->
+    <div class="panel">
+      <div class="ph">
+        <div class="ph-title">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          Ações Recomendadas
+        </div>
+        <div class="ph-link">Ver histórico</div>
+      </div>
+
+      <!-- INSIGHTS GERADOS PELA IA -->
+      <div id="feed-ai-container">
+        <div class="fi-shimmer"><div class="sh-line short"></div><div class="sh-line title"></div><div class="sh-line" style="width:90%"></div></div>
+        <div class="fi-shimmer"><div class="sh-line short"></div><div class="sh-line title"></div><div class="sh-line" style="width:80%"></div></div>
+        <div class="fi-shimmer"><div class="sh-line short"></div><div class="sh-line title"></div><div class="sh-line" style="width:85%"></div></div>
+        <div class="fi-shimmer"><div class="sh-line short"></div><div class="sh-line title"></div><div class="sh-line" style="width:75%"></div></div>
+      </div>
+
+    </div>
+
+    <!-- COLUNA DIREITA -->
+    <div class="right-col">
+
+      <!-- FORECAST -->
+      <div class="forecast">
+        <div class="fc-label">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          IA · Projeção do mês
+        </div>
+        <div class="fc-main">Nesse ritmo, você fecha março com <span class="pos">R$ +620</span> no positivo</div>
+        <div class="fc-track">
+          <div class="fc-fill" style="background:linear-gradient(90deg,var(--ok),rgba(0,214,143,.4));width:0;transition:width 1.5s .5s ease;"></div>
+        </div>
+        <div class="fc-row"><span>R$ 0</span><span>Agora</span><span>R$ 8.340</span></div>
+        <div class="fc-divider"></div>
+        <div class="fc-scenario">
+          <div class="fc-sc-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <div>
+            <div class="fc-sc-title">Em 3 meses: +R$ 1.200</div>
+            <div class="fc-sc-sub">Se cortar os gastos detectados</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- METAS -->
+      <div class="panel" style="animation-delay:.25s">
+        <div class="ph">
+          <div class="ph-title">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+            Metas
+          </div>
+          <div class="ph-link">Ver todas</div>
+        </div>
+        <div class="goals-panel">
+          <div class="gi">
+            <div class="gi-icon-wrap" style="background:rgba(0,214,143,.1);border:1px solid rgba(0,214,143,.15);">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <div class="gi-info">
+              <div class="gi-name">Reserva de emergência</div>
+              <div class="gi-track"><div class="gi-fill" id="g1" style="background:var(--ok);width:0"></div></div>
+            </div>
+            <div class="gi-right">
+              <div class="gi-pct" style="color:var(--ok)">68%</div>
+              <div class="gi-val">R$ 3.4k / 5k</div>
+            </div>
+          </div>
+          <div class="gi">
+            <div class="gi-icon-wrap" style="background:rgba(26,108,255,.1);border:1px solid rgba(26,108,255,.15);">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--ab)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.63 12 19.79 19.79 0 0 1 1.58 3.38 2 2 0 0 1 3.55 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.5a16 16 0 0 0 6 6l.91-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.5 16z"/></svg>
+            </div>
+            <div class="gi-info">
+              <div class="gi-name">Viagem — R$ 2.000</div>
+              <div class="gi-track"><div class="gi-fill" id="g2" style="background:var(--ab);width:0"></div></div>
+            </div>
+            <div class="gi-right">
+              <div class="gi-pct">41%</div>
+              <div class="gi-val">R$ 820 / 2k</div>
+            </div>
+          </div>
+          <div class="gi">
+            <div class="gi-icon-wrap" style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.15);">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            </div>
+            <div class="gi-info">
+              <div class="gi-name">Notebook novo</div>
+              <div class="gi-track"><div class="gi-fill" id="g3" style="background:var(--gold);width:0"></div></div>
+            </div>
+            <div class="gi-right">
+              <div class="gi-pct" style="color:var(--gold)">22%</div>
+              <div class="gi-val">R$ 440 / 2k</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- BOTTOM GRID -->
+  <div class="bgrid">
+
+    <!-- TRANSAÇÕES -->
+    <div class="panel" style="animation-delay:.3s">
+      <div class="ph">
+        <div class="ph-title">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+          Últimas Transações
+        </div>
+        <div class="ph-link">Ver todas</div>
+      </div>
+      <div class="tx">
+        <div class="tx-ico">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>
+        </div>
+        <div class="tx-info">
+          <div class="tx-name">iFood</div>
+          <div class="tx-ins bad">R$ 480 no mês — acima do limite</div>
+        </div>
+        <div class="tx-r"><div class="txv exp">-R$ 52</div><div class="tx-dt">Hoje</div></div>
+      </div>
+      <div class="tx">
+        <div class="tx-ico">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </div>
+        <div class="tx-info">
+          <div class="tx-name">Aluguel</div>
+          <div class="tx-ins neutral">Recorrente automático</div>
+        </div>
+        <div class="tx-r"><div class="txv exp">-R$ 1.200</div><div class="tx-dt">01/03</div></div>
+      </div>
+      <div class="tx">
+        <div class="tx-ico" style="background:rgba(0,214,143,.06);border-color:rgba(0,214,143,.15);">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        </div>
+        <div class="tx-info">
+          <div class="tx-name">Salário</div>
+          <div class="tx-ins good">Entrada confirmada</div>
+        </div>
+        <div class="tx-r"><div class="txv inc">+R$ 5.800</div><div class="tx-dt">05/03</div></div>
+      </div>
+      <div class="tx">
+        <div class="tx-ico">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H5.24a2 2 0 0 0-1.8 1.1l-.8 1.63A6 6 0 0 0 2 12.42V16h2"/><circle cx="6.5" cy="16.5" r="2.5"/><circle cx="16.5" cy="16.5" r="2.5"/></svg>
+        </div>
+        <div class="tx-info">
+          <div class="tx-name">Combustível</div>
+          <div class="tx-ins bad">+28% vs média do mês</div>
+        </div>
+        <div class="tx-r"><div class="txv exp">-R$ 180</div><div class="tx-dt">10/03</div></div>
+      </div>
+      <div class="tx">
+        <div class="tx-ico">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+        </div>
+        <div class="tx-info">
+          <div class="tx-name">Curso Online</div>
+          <div class="tx-ins good">Investimento em você</div>
+        </div>
+        <div class="tx-r"><div class="txv exp">-R$ 89</div><div class="tx-dt">12/03</div></div>
+      </div>
+    </div>
+
+    <!-- CATEGORIAS -->
+    <div class="panel" style="animation-delay:.35s">
+      <div class="ph">
+        <div class="ph-title">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          Por Categoria
+        </div>
+      </div>
+      <div class="donut-wrap">
+        <svg class="dsv" viewBox="0 0 100 100">
+          <circle class="dtrack" cx="50" cy="50" r="40"/>
+          <circle class="dseg dc1" cx="50" cy="50" r="40" transform="rotate(-90 50 50)" style="stroke-dasharray:95.5 251;stroke-dashoffset:0"/>
+          <circle class="dseg dc2" cx="50" cy="50" r="40" transform="rotate(-90 50 50)" style="stroke-dasharray:67.8 251;stroke-dashoffset:-95.5"/>
+          <circle class="dseg dc3" cx="50" cy="50" r="40" transform="rotate(-90 50 50)" style="stroke-dasharray:37.7 251;stroke-dashoffset:-163.3"/>
+          <circle class="dseg dc4" cx="50" cy="50" r="40" transform="rotate(-90 50 50)" style="stroke-dasharray:32.6 251;stroke-dashoffset:-201"/>
+          <circle class="dseg dc5" cx="50" cy="50" r="40" transform="rotate(-90 50 50)" style="stroke-dasharray:17.6 251;stroke-dashoffset:-233.6"/>
+          <text class="dtxt" x="50" y="46">R$3.2k</text>
+          <text class="dtxts" x="50" y="57">mês</text>
+        </svg>
+        <div class="dleg">
+          <div class="dli"><div class="dld" style="background:#4d94ff"></div><div class="dll">Delivery</div><div class="dlv">R$480<span class="dlp">38%</span></div></div>
+          <div class="dli"><div class="dld" style="background:#00d68f"></div><div class="dll">Moradia</div><div class="dlv">R$1.2k<span class="dlp">27%</span></div></div>
+          <div class="dli"><div class="dld" style="background:#f59e0b"></div><div class="dll">Transporte</div><div class="dlv">R$310<span class="dlp">15%</span></div></div>
+          <div class="dli"><div class="dld" style="background:#ff4444"></div><div class="dll">Outros</div><div class="dlv">R$286<span class="dlp">13%</span></div></div>
+          <div class="dli"><div class="dld" style="background:#a855f7"></div><div class="dll">Educação</div><div class="dlv">R$89<span class="dlp">7%</span></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EVOLUÇÃO DO SALDO — gráfico real com eixo Y, tooltips e deltas -->
+    <div class="panel" style="animation-delay:.4s">
+      <div class="ph">
+        <div class="ph-title">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+          Evolução do Saldo
+        </div>
+        <div class="ph-link">6 meses</div>
+      </div>
+      <div class="chart-area" style="position:relative;">
+        <!-- Eixo Y -->
+        <div class="chart-y">
+          <div class="chart-y-label">10k</div>
+          <div class="chart-y-label">7k</div>
+          <div class="chart-y-label">4k</div>
+          <div class="chart-y-label">1k</div>
+        </div>
+        <!-- Linhas de grade -->
+        <div class="chart-grid-lines">
+          <div class="chart-grid-line" style="top:0"></div>
+          <div class="chart-grid-line" style="top:33%"></div>
+          <div class="chart-grid-line" style="top:66%"></div>
+          <div class="chart-grid-line" style="top:100%"></div>
+        </div>
+        <!-- Barras -->
+        <div style="margin-left:42px;">
+          <div class="chart-bars-wrap" id="bars">
+            <div class="cbc">
+              <div class="cb-tooltip">R$ 4.820<div class="cb-delta down">-8%</div></div>
+              <div class="cbb" style="height:48%"></div>
+            </div>
+            <div class="cbc">
+              <div class="cb-tooltip">R$ 5.640<div class="cb-delta up">+17%</div></div>
+              <div class="cbb" style="height:56%"></div>
+            </div>
+            <div class="cbc">
+              <div class="cb-tooltip">R$ 4.320<div class="cb-delta down">-23%</div></div>
+              <div class="cbb" style="height:43%"></div>
+            </div>
+            <div class="cbc">
+              <div class="cb-tooltip">R$ 6.100<div class="cb-delta up">+41%</div></div>
+              <div class="cbb" style="height:61%"></div>
+            </div>
+            <div class="cbc">
+              <div class="cb-tooltip">R$ 7.280<div class="cb-delta up">+19%</div></div>
+              <div class="cbb" style="height:73%"></div>
+            </div>
+            <div class="cbc">
+              <div class="cb-tooltip">R$ 8.340<div class="cb-delta up">+15%</div></div>
+              <div class="cbb cur" style="height:83%"></div>
+            </div>
+          </div>
+          <div class="chart-x-labels">
+            <div class="chart-x-label">Out</div>
+            <div class="chart-x-label">Nov</div>
+            <div class="chart-x-label">Dez</div>
+            <div class="chart-x-label">Jan</div>
+            <div class="chart-x-label">Fev</div>
+            <div class="chart-x-label cur">Mar</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- UPGRADE PRO — único CTA, no final, limpo -->
+  <div class="upgrade">
+    <div>
+      <div class="up-badge">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        MonetaX Pro
+      </div>
+      <div class="up-title">Você viu o problema.<br>O Pro te diz exatamente o que fazer.</div>
+      <div class="up-sub">Os insights acima são só o começo. Com o Pro, a IA age por você: prevê, alerta e recomenda antes do problema acontecer.</div>
+      <div class="up-feats">
+        <div class="uf">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Previsão de 90 dias
+        </div>
+        <div class="uf">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/><path d="M22 2 12 12"/></svg>
+          IA que age por você
+        </div>
+        <div class="uf">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/></svg>
+          Alertas antecipados
+        </div>
+        <div class="uf">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          Relatórios ilimitados
+        </div>
+        <div class="uf">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+          Sync automático com banco
+        </div>
+        <div class="uf">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+          Metas inteligentes
+        </div>
+      </div>
+    </div>
+    <div class="up-cta">
+      <button class="up-btn" onclick="localStorage.removeItem('sb-access-token');localStorage.removeItem('sb-refresh-token');window.location.href='/auth'">
+        <span class="sh"></span>
+        Ativar MonetaX Pro — R$ 27,90/mês
+      </button>
+      <div class="up-note">Sem fidelidade · Cancele quando quiser · Ou <b>R$ 279,90/ano</b></div>
+    </div>
+  </div>
+
+</main>
+
+<!-- BOTTOM NAV MOBILE -->
+<nav class="bnav">
+  <div class="bni on">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    <span>Início</span>
+  </div>
+  <div class="bni">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+    <span>Gastos</span>
+  </div>
+  <div class="bni">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+    <span>Relatório</span>
+  </div>
+  <div class="bni">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+    <span>Metas</span>
+  </div>
+  <div class="bni">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+    <span>Mais</span>
+  </div>
+</nav>
+
+<!-- ═══ COPILOTO FAB ═══ -->
+<button class="copiloto-fab" id="copiloto-fab" onclick="toggleCopiloto()" aria-label="Abrir Copiloto IA">
+  <span class="copiloto-fab-label">Copiloto IA</span>
+  <div class="fab-notif" id="fab-notif">3</div>
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/><path d="M22 2 12 12"/></svg>
+</button>
+
+<!-- ═══ OVERLAY ═══ -->
+<div class="copiloto-overlay" id="copiloto-overlay" onclick="toggleCopiloto()"></div>
+
+<!-- ═══ DRAWER ═══ -->
+<div class="copiloto-drawer" id="copiloto-drawer">
+
+  <!-- HEADER -->
+  <div class="cpd-header">
+    <div class="cpd-hex">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/><path d="M22 2 12 12"/></svg>
+    </div>
+    <div>
+      <div class="cpd-title">Copiloto MonetaX</div>
+      <div class="cpd-sub">
+        <div class="cpd-live-dot"></div>
+        IA ativa · contexto carregado
+      </div>
+    </div>
+    <div class="cpd-close" onclick="toggleCopiloto()">✕</div>
+  </div>
+
+  <!-- TABS -->
+  <div class="cpd-tabs">
+    <div class="cpd-tab on" onclick="setCpdTab(this,'chat')">💬 Chat</div>
+    <div class="cpd-tab" onclick="setCpdTab(this,'sim')">🧮 Simulador</div>
+  </div>
+
+  <!-- ── CHAT PANEL ── -->
+  <div class="cpd-panel on" id="cpd-chat">
+    <div class="cpd-msgs" id="cpd-msgs">
+      <div class="cm ai">
+        <div class="cm-av ai">🤖</div>
+        <div class="cm-wrap">
+          <div class="cm-name">Copiloto</div>
+          <div class="cm-bubble">Olá, João! 👋 Já li seus dados financeiros deste mês.<br><br>Você tem <strong>R$ 1.240 disponíveis</strong>, gastos de <strong>R$ 3.200</strong> e está com o iFood <em>R$ 180 acima do limite</em>. O que quer resolver agora?</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cpd-suggestions" id="cpd-chips">
+      <div class="cpd-chip" onclick="useSuggestion(this)">Onde cortar gastos?</div>
+      <div class="cpd-chip" onclick="useSuggestion(this)">Quanto pago de juros?</div>
+      <div class="cpd-chip" onclick="useSuggestion(this)">Consigo poupar em março?</div>
+      <div class="cpd-chip" onclick="useSuggestion(this)">Qual meta priorizar?</div>
+    </div>
+
+    <div class="cpd-input-wrap">
+      <textarea class="cpd-input" id="cpd-input" placeholder="Pergunte algo sobre suas finanças..." rows="1"
+        onkeydown="cpdKey(event)" oninput="cpdResize(this)"></textarea>
+      <button class="cpd-send" id="cpd-send" onclick="cpdSend()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── SIMULADOR PANEL ── -->
+  <div class="cpd-panel" id="cpd-sim">
+    <div class="cpd-sim" id="cpd-sim-scroll">
+
+      <div style="margin-bottom:16px;">
+        <div style="font-size:13px;font-weight:800;margin-bottom:4px;">🧮 Simulador de Quitação</div>
+        <div style="font-size:11px;color:var(--w55);line-height:1.5;">Informe suas dívidas e a IA monta o plano ideal de quitação com datas e valores exatos.</div>
+      </div>
+
+      <div id="sim-debts-wrap">
+        <div class="debt-entry-c" id="dc-0">
+          <button class="drc-btn" onclick="removeDc(0)">×</button>
+          <div class="sim-field">
+            <label class="sim-label">Nome da dívida</label>
+            <input class="sim-input" placeholder="Ex: Cartão Nubank" value="Cartão Nubank">
+          </div>
+          <div class="sim-row">
+            <div class="sim-field">
+              <label class="sim-label">Valor (R$)</label>
+              <input class="sim-input" type="number" placeholder="0" value="3200">
+            </div>
+            <div class="sim-field">
+              <label class="sim-label">Juros a.m. (%)</label>
+              <input class="sim-input" type="number" placeholder="0" value="12.5">
+            </div>
+          </div>
+        </div>
+        <div class="debt-entry-c" id="dc-1">
+          <button class="drc-btn" onclick="removeDc(1)">×</button>
+          <div class="sim-field">
+            <label class="sim-label">Nome da dívida</label>
+            <input class="sim-input" placeholder="Ex: Empréstimo" value="Empréstimo Pessoal">
+          </div>
+          <div class="sim-row">
+            <div class="sim-field">
+              <label class="sim-label">Valor (R$)</label>
+              <input class="sim-input" type="number" placeholder="0" value="2400">
+            </div>
+            <div class="sim-field">
+              <label class="sim-label">Juros a.m. (%)</label>
+              <input class="sim-input" type="number" placeholder="0" value="3.2">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button class="sim-add-btn" onclick="addDc()">+ Adicionar dívida</button>
+
+      <div style="border-top:1px solid var(--bd);padding-top:14px;margin-bottom:14px;">
+        <div class="sim-field">
+          <label class="sim-label">Quanto pode pagar/mês? (R$)</label>
+          <input class="sim-input" type="number" id="sim-budget" value="800" placeholder="Ex: 800">
+        </div>
+        <div class="sim-field">
+          <label class="sim-label">Estratégia</label>
+          <select class="sim-input" id="sim-strategy">
+            <option value="avalanche">Avalanche — mata o maior juro primeiro</option>
+            <option value="bola-de-neve">Bola de Neve — menor dívida primeiro</option>
+            <option value="ia">Deixar a IA decidir</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="sim-run-btn" id="sim-run" onclick="runSim()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        Gerar Plano com IA
+      </button>
+
+      <div id="sim-result" style="display:none" class="sim-result-box"></div>
+    </div>
+  </div>
+
+</div><!-- /drawer -->
+
+<script>
+
+/* AUTH GUARD */
+(function(){
+  var _t=localStorage.getItem('sb-access-token');
+  if(!_t){window.location.replace('/auth');}
+})();
+
+// ─── REMOVER SKELETON ───
+window.addEventListener('load', () => {
+  // O skeleton some via animação CSS depois de 1.4s
+});
+
+// ─── ANIMAR BARRAS ───
+setTimeout(() => {
+  const bars = document.querySelectorAll('.cbb');
+  bars.forEach((b, i) => {
+    const h = b.style.height;
+    b.style.height = '0';
+    b.style.transition = `height .7s ${i * .1 + .2}s cubic-bezier(.4,0,.2,1)`;
+    requestAnimationFrame(() => requestAnimationFrame(() => { b.style.height = h; }));
+  });
+}, 1500);
+
+// ─── ANIMAR GOALS ───
+const goalData = [{id:'g1',w:68},{id:'g2',w:41},{id:'g3',w:22}];
+goalData.forEach(({id, w}, i) => {
+  setTimeout(() => {
+    const el = document.getElementById(id);
+    if(el){
+      el.style.transition = 'width 1s cubic-bezier(.4,0,.2,1)';
+      el.style.width = w + '%';
+    }
+  }, 1600 + i * 180);
+});
+
+// ─── ANIMAR FORECAST BAR ───
+setTimeout(() => {
+  const fb = document.querySelector('.fc-fill');
+  if(fb){ fb.style.width = '73%'; }
+}, 1800);
+
+// ─── NAV SIDEBAR ───
+function setNav(el) {
+  document.querySelectorAll('.ni').forEach(x => x.classList.remove('on'));
+  el.classList.add('on');
+}
+
+// ─── NAV BOTTOM ───
+document.querySelectorAll('.bni').forEach(n => {
+  n.addEventListener('click', () => {
+    document.querySelectorAll('.bni').forEach(x => x.classList.remove('on'));
+    n.classList.add('on');
+  });
+});
+
+// ─── SKELETON CLEANUP ───
+setTimeout(() => {
+  const sk = document.getElementById('skeleton');
+  if(sk) sk.remove();
+}, 1750);
+
+// ════════════════════════════════════════
+// COPILOTO IA — LÓGICA COMPLETA
+// ════════════════════════════════════════
+
+// ─── DADOS DO USUÁRIO (mock — substituir por API real) ───
+const USER = {
+  name: 'João Silva',
+  income: 5800,
+  balance: 1240,
+  available: 1240,
+  totalExpenses: 3200,
+  transactions: [
+    { name: 'iFood', amount: 480, limit: 200, category: 'Delivery', delta: '+140%' },
+    { name: 'Aluguel', amount: 1200, category: 'Moradia', recurring: true },
+    { name: 'Combustível', amount: 180, category: 'Transporte', delta: '+28%' },
+    { name: 'Spotify', amount: 21, lastAccess: '18 dias atrás', category: 'Assinatura' },
+    { name: 'Disney+', amount: 43, lastAccess: '34 dias atrás', category: 'Assinatura' },
+    { name: 'Curso Online', amount: 89, category: 'Educação' },
+  ],
+  goals: [
+    { name: 'Reserva de emergência', target: 5000, current: 3400, pct: 68 },
+    { name: 'Viagem', target: 2000, current: 820, pct: 41 },
+    { name: 'Notebook', target: 2000, current: 440, pct: 22 },
+  ],
+  score: 77,
+  monthProjection: '+R$ 620',
+  categories: { Delivery: 480, Moradia: 1200, Transporte: 310, Outros: 286, Educação: 89 }
+};
+
+function buildSysPrompt() {
+  return `Você é o Copiloto Financeiro da MonetaX — assistente de IA para finanças pessoais de brasileiros.
+
+DADOS REAIS DO USUÁRIO:
+• Nome: ${USER.name}
+• Renda mensal: R$ ${USER.income.toLocaleString('pt-BR')}
+• Saldo disponível este mês: R$ ${USER.available.toLocaleString('pt-BR')}
+• Gastos no mês: R$ ${USER.totalExpenses.toLocaleString('pt-BR')} (${Math.round(USER.totalExpenses/USER.income*100)}% da renda)
+• Score de saúde financeira: ${USER.score}/100
+• Projeção de fechamento do mês: ${USER.monthProjection}
+• Principais gastos: ${Object.entries(USER.categories).map(([k,v])=>`${k} R$ ${v}`).join(', ')}
+• Metas: ${USER.goals.map(g=>`${g.name} ${g.pct}% concluída`).join(', ')}
+• Alertas detectados: iFood +140% acima do limite, Spotify sem uso (18d), Disney+ sem uso (34d)
+
+INSTRUÇÕES:
+- Responda sempre em português brasileiro direto e prático
+- Use os dados reais do usuário — nunca invente valores
+- Seja objetivo: dê números concretos e ações claras
+- No chat: máximo 200 palavras por resposta
+- Metodologia MonetaX C.D.F.: Controle → Direção → Fortuna`;
+}
+
+// ─── DRAWER TOGGLE ───
+let drawerOpen = false;
+function toggleCopiloto() {
+  drawerOpen = !drawerOpen;
+  document.getElementById('copiloto-drawer').classList.toggle('open', drawerOpen);
+  document.getElementById('copiloto-overlay').classList.toggle('open', drawerOpen);
+  if (drawerOpen) {
+    document.getElementById('fab-notif').style.display = 'none';
+    document.getElementById('cpd-input').focus();
+  }
+}
+
+// ─── TAB SWITCHING ───
+function setCpdTab(el, panel) {
+  document.querySelectorAll('.cpd-tab').forEach(t => t.classList.remove('on'));
+  document.querySelectorAll('.cpd-panel').forEach(p => p.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('cpd-' + panel).classList.add('on');
+}
+
+// ─── CHAT LÓGICA ───
+const chatHistory = [];
+let chatBusy = false;
+
+function cpdKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); cpdSend(); }
+}
+
+function cpdResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+}
+
+function useSuggestion(el) {
+  document.getElementById('cpd-input').value = el.textContent;
+  document.getElementById('cpd-chips').style.display = 'none';
+  cpdSend();
+}
+
+function addMsg(role, html) {
+  const box = document.getElementById('cpd-msgs');
+  const div = document.createElement('div');
+  div.className = 'cm ' + (role === 'ai' ? 'ai' : 'user');
+
+  const av = document.createElement('div');
+  av.className = 'cm-av ' + (role === 'ai' ? 'ai' : 'hu');
+  av.textContent = role === 'ai' ? '🤖' : 'JS';
+
+  const wrap = document.createElement('div');
+  wrap.className = 'cm-wrap';
+
+  const name = document.createElement('div');
+  name.className = 'cm-name';
+  name.textContent = role === 'ai' ? 'Copiloto' : 'Você';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'cm-bubble';
+  bubble.innerHTML = html
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\n/g, '<br>');
+
+  wrap.appendChild(name);
+  wrap.appendChild(bubble);
+  div.appendChild(av);
+  div.appendChild(wrap);
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}
+
+function showTyping() {
+  const box = document.getElementById('cpd-msgs');
+  const div = document.createElement('div');
+  div.className = 'typing-wrap'; div.id = 'cpd-typing';
+  const av = document.createElement('div');
+  av.className = 'cm-av ai'; av.textContent = '🤖';
+  const bubble = document.createElement('div');
+  bubble.className = 'typing-bubble';
+  bubble.innerHTML = '<div class="td"></div><div class="td"></div><div class="td"></div>';
+  div.appendChild(av); div.appendChild(bubble);
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}
+
+async function cpdSend() {
+  if (chatBusy) return;
+  const input = document.getElementById('cpd-input');
+  const text = input.value.trim();
+  if (!text) return;
+
+  chatBusy = true;
+  input.value = ''; input.style.height = 'auto';
+  document.getElementById('cpd-send').disabled = true;
+  document.getElementById('cpd-chips').style.display = 'none';
+
+  addMsg('user', text);
+  chatHistory.push({ role: 'user', content: text });
+  showTyping();
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: buildSysPrompt(),
+        messages: chatHistory
+      })
+    });
+    const data = await res.json();
+    const reply = data.content?.[0]?.text || 'Erro ao conectar. Tente novamente.';
+    document.getElementById('cpd-typing')?.remove();
+    chatHistory.push({ role: 'assistant', content: reply });
+    addMsg('ai', reply);
+  } catch {
+    document.getElementById('cpd-typing')?.remove();
+    addMsg('ai', '❌ Falha de conexão. Verifique sua internet e tente novamente.');
+  }
+
+  chatBusy = false;
+  document.getElementById('cpd-send').disabled = false;
+  document.getElementById('cpd-input').focus();
+}
+
+// ─── FEED DE INSIGHTS AI ───
+async function loadFeedInsights() {
+  const prompt = `Gere exatamente 4 insights financeiros para o usuário baseado nos dados dele.
+Responda APENAS em JSON válido, sem markdown, no formato:
+[
+  { "tipo": "urgent|tip|positive|forecast", "titulo": "...", "desc": "..." },
+  ...
+]
+Tipos: urgent=alerta vermelho, tip=dica azul, positive=oportunidade verde, forecast=previsão dourada.
+Cada titulo: máx 60 chars. Cada desc: máx 100 chars. Use dados reais (valores, percentuais).`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: buildSysPrompt(),
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await res.json();
+    const raw = data.content?.[0]?.text || '[]';
+    const clean = raw.replace(/```json|```/g,'').trim();
+    const insights = JSON.parse(clean);
+    renderFeedInsights(insights);
+  } catch {
+    // fallback: mantém estáticos se API falhar
+    renderFeedInsights([
+      { tipo:'urgent', titulo:'iFood: +140% acima do seu limite mensal', desc:'R$ 480 gastos — seu limite era R$ 200. Em 12 meses isso são R$ 3.360 a mais.' },
+      { tipo:'tip', titulo:'Spotify e Disney+ inativos há semanas', desc:'R$ 64/mês em assinaturas sem uso. Cancelar economiza R$ 768 por ano.' },
+      { tipo:'positive', titulo:'Você pode investir R$ 300 este mês', desc:'Seu saldo permite. Com juros compostos em 12 meses: +R$ 3.780 trabalhando por você.' },
+      { tipo:'forecast', titulo:'Projeção: fechará março com +R$ 620', desc:'Se manter o ritmo atual. Cortando delivery pode chegar a +R$ 900.' }
+    ]);
+  }
+}
+
+const tipoMap = {
+  urgent: { cls:'fi-warn', labelCls:'urgent', labelTxt:'⚠ Urgente', btnCls:'btn-warn', btnTxt:'Corrigir agora' },
+  tip:    { cls:'fi-tip',  labelCls:'tip',    labelTxt:'💡 Dica',   btnCls:'btn-primary', btnTxt:'Ver detalhes' },
+  positive:{ cls:'fi-ok', labelCls:'positive',labelTxt:'✅ Oportunidade', btnCls:'btn-primary', btnTxt:'Agir agora' },
+  forecast:{ cls:'fi-gold',labelCls:'forecast',labelTxt:'📈 Previsão', btnCls:'btn-primary', btnTxt:'Ver projeção' }
+};
+
+function renderFeedInsights(items) {
+  const container = document.getElementById('feed-ai-container');
+  container.innerHTML = '';
+  items.forEach(item => {
+    const m = tipoMap[item.tipo] || tipoMap.tip;
+    const div = document.createElement('div');
+    div.className = 'feed-item';
+    div.style.animation = 'fadeUp .4s ease both';
+    div.innerHTML = `
+      <div class="fi-top">
+        <div class="fi-icon ${m.cls}">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </div>
+        <div class="fi-body">
+          <div class="fi-label ${m.labelCls}">${m.labelTxt}</div>
+          <div class="fi-title">${item.titulo}</div>
+          <div class="fi-desc">${item.desc}</div>
+        </div>
+      </div>
+      <div class="fi-actions">
+        <button class="btn-action ${m.btnCls}" onclick="openCopilotoWithContext('${item.titulo.replace(/'/g,"\\'")}')">Conversar sobre isso</button>
+        <button class="btn-action btn-secondary" onclick="this.textContent='Ok!'">Ignorar</button>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function openCopilotoWithContext(context) {
+  if (!drawerOpen) toggleCopiloto();
+  setTimeout(() => {
+    document.getElementById('cpd-input').value = 'Me explica mais sobre: ' + context;
+    cpdSend();
+  }, 350);
+}
+
+// ─── SIMULADOR ───
+let dcCount = 2;
+
+function addDc() {
+  const wrap = document.getElementById('sim-debts-wrap');
+  const id = dcCount++;
+  const div = document.createElement('div');
+  div.className = 'debt-entry-c'; div.id = 'dc-' + id;
+  div.innerHTML = `
+    <button class="drc-btn" onclick="removeDc(${id})">×</button>
+    <div class="sim-field">
+      <label class="sim-label">Nome da dívida</label>
+      <input class="sim-input" placeholder="Ex: Cheque especial">
+    </div>
+    <div class="sim-row">
+      <div class="sim-field"><label class="sim-label">Valor (R$)</label><input class="sim-input" type="number" placeholder="0"></div>
+      <div class="sim-field"><label class="sim-label">Juros a.m. (%)</label><input class="sim-input" type="number" placeholder="0"></div>
+    </div>
+  `;
+  wrap.appendChild(div);
+}
+
+function removeDc(id) {
+  const el = document.getElementById('dc-' + id);
+  if (el) el.remove();
+}
+
+function getDcDebts() {
+  const out = [];
+  document.querySelectorAll('.debt-entry-c').forEach(el => {
+    const inputs = el.querySelectorAll('input');
+    const name = inputs[0]?.value?.trim();
+    const val = parseFloat(inputs[1]?.value);
+    const rate = parseFloat(inputs[2]?.value);
+    if (name && val > 0) out.push({ name, val, rate: rate||0 });
+  });
+  return out;
+}
+
+async function runSim() {
+  const debts = getDcDebts();
+  if (!debts.length) return;
+  const budget = parseFloat(document.getElementById('sim-budget').value);
+  const strategy = document.getElementById('sim-strategy').value;
+  if (!budget) return;
+
+  const btn = document.getElementById('sim-run');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="sim-spin"></div> Gerando plano...';
+
+  const resultBox = document.getElementById('sim-result');
+  resultBox.style.display = 'block';
+  resultBox.innerHTML = '<div style="display:flex;align-items:center;gap:8px;color:var(--w55);font-size:12px"><div class="sim-spin"></div> A IA está montando seu plano...</div>';
+
+  const prompt = `
+Dívidas do usuário:
+${debts.map(d=>`• ${d.name}: R$ ${d.val.toLocaleString('pt-BR')} a ${d.rate}% a.m.`).join('\n')}
+Pode pagar por mês: R$ ${budget.toLocaleString('pt-BR')}
+Estratégia: ${strategy}
+Renda mensal: R$ ${USER.income.toLocaleString('pt-BR')}
+
+Crie plano de quitação completo:
+1. Qual atacar primeiro e por quê
+2. Quanto alocar em cada dívida/mês
+3. Quantos meses para quitar cada uma
+4. Total de juros economizados
+5. Mensagem motivadora com data de liberdade financeira
+
+Seja específico com valores e datas. Formate bem. Use emojis discretos.`.trim();
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: buildSysPrompt(),
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await res.json();
+    const reply = data.content?.[0]?.text || 'Erro ao gerar plano.';
+    resultBox.innerHTML = '<h4>📋 Seu Plano de Quitação</h4>' +
+      reply.replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');
+  } catch {
+    resultBox.innerHTML = '<span style="color:var(--warn)">❌ Erro ao conectar. Tente novamente.</span>';
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Gerar Plano com IA';
+
+  // scroll pro resultado
+  document.getElementById('sim-result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// ─── INIT: carrega feed ao abrir ───
+setTimeout(() => { loadFeedInsights(); }, 1800);
+</script>
+</body>
+</html>

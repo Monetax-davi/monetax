@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="theme-color" content="#030508">
+<title>Monetax — Entrar ou Criar Conta</title>
+<style>
+/* ══════════════════════════════════════════
+   TOKENS
+══════════════════════════════════════════ */
+:root{
+  --bg:#030508;
+  --navy:#07101f;
+  --card:#0a1628;
+  --card2:#0d1e36;
+  --a:#1a6cff;
+  --ab:#4d94ff;
+  --ag:rgba(26,108,255,.35);
+  --as:rgba(26,108,255,.09);
+  --w:#fff;
+  --w80:rgba(255,255,255,.8);
+  --w55:rgba(255,255,255,.55);
+  --w20:rgba(255,255,255,.2);
+  --w10:rgba(255,255,255,.1);
+  --w06:rgba(255,255,255,.06);
+  --bd:rgba(255,255,255,.09);
+  --bda:rgba(26,108,255,.3);
+  --ok:#00d68f;
+  --warn:#ff4444;
+  --gold:#f59e0b;
+  --f:ui-sans-serif,system-ui,sans-serif,"Apple Color Emoji","Segoe UI Emoji";
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{height:100%;-webkit-text-size-adjust:100%}
+body{background:var(--bg);color:var(--w);font-family:var(--f);min-height:100svh;overflow-x:hidden;-webkit-font-smoothing:antialiased;display:flex;flex-direction:column}
+
+/* ══════════════════════════════════════════
+   BACKGROUND LAYERS
+══════════════════════════════════════════ */
+#pc{position:fixed;inset:0;z-index:0;pointer-events:none}
+.gbg{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:linear-gradient(rgba(26,108,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(26,108,255,.03) 1px,transparent 1px);
+  background-size:68px 68px;
+  mask-image:radial-gradient(ellipse 80% 70% at 50% 40%,black 10%,transparent 80%)}
+
+/* ══════════════════════════════════════════
+   CURSOR
+══════════════════════════════════════════ */
+.cur{position:fixed;width:8px;height:8px;background:#fff;border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);mix-blend-mode:difference;transition:width .15s,height .15s;display:none}
+.cur-r{position:fixed;width:38px;height:38px;border:1px solid rgba(77,148,255,.55);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:width .2s,height .2s,border-color .2s;display:none}
+@media(hover:hover){.cur,.cur-r{display:block}}
+.cur.ex{width:14px;height:14px}
+.cur-r.ex{width:58px;height:58px;border-color:rgba(77,148,255,.9)}
+
+/* ══════════════════════════════════════════
+   NAV
+══════════════════════════════════════════ */
+nav{position:relative;z-index:200;display:flex;align-items:center;justify-content:space-between;padding:18px 40px;border-bottom:1px solid var(--bd);background:rgba(3,5,8,.6);backdrop-filter:blur(18px) saturate(180%)}
+.logo{display:flex;align-items:center;gap:10px;font-size:19px;font-weight:800;letter-spacing:-.5px;text-decoration:none;color:#fff}
+.lhex{width:28px;height:28px;background:var(--a);clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;animation:lp 4s ease-in-out infinite;box-shadow:0 0 18px rgba(26,108,255,.6)}
+@keyframes lp{0%,100%{box-shadow:0 0 14px rgba(26,108,255,.6)}50%{box-shadow:0 0 32px rgba(26,108,255,1),0 0 56px rgba(26,108,255,.3)}}
+.nav-back{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--w55);text-decoration:none;padding:8px 16px;border:1px solid var(--bd);border-radius:8px;transition:all .2s;background:transparent}
+.nav-back:hover{color:#fff;border-color:var(--w20);background:var(--w06)}
+
+/* ══════════════════════════════════════════
+   MAIN LAYOUT
+══════════════════════════════════════════ */
+.auth-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:40px 20px 60px;position:relative;z-index:2}
+
+/* Central glow orb */
+.cglow{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:800px;height:800px;border-radius:50%;background:radial-gradient(circle,rgba(26,108,255,.13) 0%,transparent 65%);pointer-events:none;animation:cglowb 7s ease-in-out infinite;z-index:1}
+@keyframes cglowb{0%,100%{opacity:.7;transform:translate(-50%,-50%) scale(1)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.15)}}
+
+/* Rings */
+.rings{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:1}
+.ring{position:absolute;border-radius:50%;border:1px solid rgba(26,108,255,.1);transform:translate(-50%,-50%);animation:ringpulse 5s ease-in-out infinite}
+.ring:nth-child(1){width:320px;height:320px}
+.ring:nth-child(2){width:560px;height:560px;animation-delay:.9s;border-color:rgba(26,108,255,.06)}
+.ring:nth-child(3){width:820px;height:820px;animation-delay:1.8s;border-color:rgba(26,108,255,.035)}
+@keyframes ringpulse{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:1}50%{transform:translate(-50%,-50%) scale(1.04);opacity:.6}}
+
+/* ══════════════════════════════════════════
+   AUTH CARD
+══════════════════════════════════════════ */
+.auth-card{
+  width:100%;max-width:460px;
+  background:var(--card);
+  border:1px solid var(--bd);
+  border-top:1px solid rgba(255,255,255,.16);
+  border-radius:24px;
+  overflow:hidden;
+  box-shadow:0 40px 100px rgba(0,0,0,.6),0 0 80px rgba(26,108,255,.07);
+  position:relative;
+  z-index:10;
+  animation:cdup .65s .1s both;
+}
+@keyframes cdup{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
+.auth-card::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 40% at 50% 0%,rgba(26,108,255,.09),transparent);pointer-events:none;z-index:0}
+
+/* ──── Header inside card ──── */
+.ac-head{padding:36px 36px 0;text-align:center;position:relative;z-index:1}
+.ac-icon{width:52px;height:52px;border-radius:16px;background:var(--as);border:1px solid var(--bda);display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 auto 20px;box-shadow:0 0 24px rgba(26,108,255,.25);animation:iconpulse 3s ease-in-out infinite}
+@keyframes iconpulse{0%,100%{box-shadow:0 0 16px rgba(26,108,255,.25)}50%{box-shadow:0 0 32px rgba(26,108,255,.55)}}
+.ac-title{font-size:24px;font-weight:800;letter-spacing:-.6px;margin-bottom:6px}
+.ac-title .glitch{position:relative;color:var(--ab)}
+.ac-title .glitch::before,.ac-title .glitch::after{content:attr(data-text);position:absolute;left:0;top:0;overflow:hidden}
+.ac-title .glitch::before{color:rgba(77,148,255,.5);animation:gl1 6s 2s infinite}
+.ac-title .glitch::after{color:rgba(26,108,255,.3);animation:gl2 6s 2.15s infinite}
+@keyframes gl1{0%,88%,100%{clip-path:inset(100% 0 0 0);transform:translate(0)}91%{clip-path:inset(15% 0 55% 0);transform:translate(-2px,1px)}95%{clip-path:inset(55% 0 15% 0);transform:translate(2px,0)}}
+@keyframes gl2{0%,88%,100%{clip-path:inset(100% 0 0 0)}91%{clip-path:inset(55% 0 15% 0);transform:translate(2px,-1px)}95%{clip-path:inset(15% 0 55% 0);transform:translate(-1px,0)}}
+.ac-sub{font-size:13px;color:var(--w55);margin-bottom:28px;line-height:1.6}
+
+/* ──── Tab switcher ──── */
+.tab-bar{display:flex;background:rgba(255,255,255,.04);border:1px solid var(--bd);border-radius:12px;padding:4px;margin:0 36px 28px;position:relative;z-index:1}
+.tab-btn{flex:1;padding:10px;font-size:13px;font-weight:700;border:none;background:transparent;color:var(--w55);cursor:pointer;border-radius:9px;transition:all .25s;position:relative;z-index:1}
+.tab-btn.active{color:#fff;background:var(--a);box-shadow:0 4px 20px rgba(26,108,255,.4)}
+.tab-btn.active::after{content:'';position:absolute;inset:0;border-radius:9px;background:linear-gradient(135deg,rgba(255,255,255,.12),transparent)}
+
+/* ──── Form body ──── */
+.ac-body{padding:0 36px 36px;position:relative;z-index:1}
+
+/* Google button */
+.btn-google{
+  width:100%;padding:13px 20px;
+  border-radius:12px;
+  border:1px solid var(--bd);
+  background:rgba(255,255,255,.04);
+  color:var(--w80);
+  font-size:14px;font-weight:600;
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:11px;
+  transition:all .2s;
+  margin-bottom:24px;
+  position:relative;overflow:hidden;
+}
+.btn-google:hover{background:rgba(255,255,255,.08);border-color:var(--w20);color:#fff}
+.btn-google::after{content:'';position:absolute;top:0;left:-100%;width:50%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent);animation:gg 4s 2s infinite}
+@keyframes gg{to{left:200%}}
+.g-logo{width:18px;height:18px;flex-shrink:0}
+
+/* Divider */
+.divider{display:flex;align-items:center;gap:14px;margin-bottom:24px}
+.dline{flex:1;height:1px;background:var(--bd)}
+.dtxt{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--w55);white-space:nowrap}
+
+/* Fields */
+.field{margin-bottom:18px}
+.field-label{display:flex;align-items:center;justify-content:space-between;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--w55);margin-bottom:8px}
+.field-hint{font-size:11px;color:var(--ab);font-weight:600;letter-spacing:0;text-transform:none;cursor:pointer;text-decoration:none;transition:color .2s}
+.field-hint:hover{color:#fff}
+
+.field-wrap{position:relative}
+.field-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:15px;color:var(--w55);pointer-events:none;transition:color .3s}
+.field-input{
+  width:100%;
+  padding:14px 14px 14px 42px;
+  background:rgba(255,255,255,.04);
+  border:1px solid var(--bd);
+  border-radius:12px;
+  color:#fff;
+  font-size:14px;
+  font-family:var(--f);
+  outline:none;
+  transition:border-color .25s,box-shadow .25s,background .25s;
+  -webkit-appearance:none;
+}
+.field-input::placeholder{color:rgba(255,255,255,.22)}
+.field-input:focus{
+  border-color:rgba(26,108,255,.55);
+  background:rgba(26,108,255,.06);
+  box-shadow:0 0 0 3px rgba(26,108,255,.12),0 0 24px rgba(26,108,255,.1);
+}
+.field-input:focus + .field-icon,.field-wrap:focus-within .field-icon{color:var(--ab)}
+
+/* Password toggle */
+.pwd-toggle{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--w55);font-size:15px;padding:4px;transition:color .2s;line-height:1}
+.pwd-toggle:hover{color:var(--w)}
+
+/* Password strength */
+.pwd-strength{display:flex;gap:5px;margin-top:8px;height:3px}
+.ps-bar{flex:1;height:100%;border-radius:2px;background:var(--bd);transition:background .4s}
+.ps-bar.s1{background:var(--warn)}
+.ps-bar.s2{background:var(--gold)}
+.ps-bar.s3{background:var(--ok)}
+.ps-bar.s4{background:var(--ok)}
+.ps-label{font-size:10px;color:var(--w55);margin-top:5px;text-align:right;transition:color .3s}
+
+/* Remember row */
+.row-between{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+.check-wrap{display:flex;align-items:center;gap:9px;cursor:pointer;user-select:none}
+.check-box{width:16px;height:16px;border:1px solid var(--bd);border-radius:5px;background:rgba(255,255,255,.04);flex-shrink:0;transition:all .2s;position:relative;cursor:pointer;-webkit-appearance:none;appearance:none}
+.check-box:checked{background:var(--a);border-color:var(--a)}
+.check-box:checked::after{content:'✓';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:700}
+.check-label{font-size:13px;color:var(--w55)}
+
+/* Primary button */
+.btn-primary{
+  width:100%;padding:16px;
+  background:var(--a);
+  color:#fff;
+  border:none;
+  border-radius:12px;
+  font-size:15px;font-weight:800;
+  cursor:pointer;
+  position:relative;overflow:hidden;
+  box-shadow:0 6px 40px rgba(26,108,255,.42),inset 0 1px 0 rgba(255,255,255,.15);
+  transition:transform .15s,box-shadow .15s;
+  margin-bottom:20px;
+  letter-spacing:.2px;
+}
+.btn-primary::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.14),transparent)}
+.btn-shine{position:absolute;top:-50%;left:-60%;width:40%;height:200%;background:linear-gradient(105deg,transparent,rgba(255,255,255,.25),transparent);transform:skewX(-15deg);animation:bsh 4s 1.2s infinite}
+@keyframes bsh{0%,100%{left:-60%}40%{left:130%}}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 12px 56px rgba(26,108,255,.6)}
+.btn-primary:active{transform:translateY(0) scale(.99)}
+
+/* Loading state */
+.btn-primary.loading{pointer-events:none}
+.btn-primary.loading .btn-text{opacity:0}
+.btn-primary.loading::before{content:'';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:inherit}
+.spinner{display:none;width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)}
+@keyframes spin{to{rotate:360deg}}
+.btn-primary.loading .spinner{display:block}
+
+/* Terms */
+.terms-txt{font-size:11px;color:var(--w55);text-align:center;line-height:1.7}
+.terms-txt a{color:var(--ab);text-decoration:none;transition:color .2s}
+.terms-txt a:hover{color:#fff}
+
+/* Social proof strip */
+.social-proof{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:28px;padding-top:24px;border-top:1px solid var(--bd)}
+.sp-avatars{display:flex}
+.sp-av{width:26px;height:26px;border-radius:50%;border:2px solid var(--bg);background:linear-gradient(135deg,var(--a),var(--ab));display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;margin-left:-8px;flex-shrink:0}
+.sp-av:first-child{margin-left:0}
+.sp-txt{font-size:12px;color:var(--w55);line-height:1.5}
+.sp-txt strong{color:#fff;font-weight:700}
+
+/* ──── Panel switcher ──── */
+.panel{display:none}
+.panel.active{display:block}
+
+/* ══════════════════════════════════════════
+   ERROR / SUCCESS STATES
+══════════════════════════════════════════ */
+.msg-box{display:none;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:10px;font-size:13px;line-height:1.5;margin-bottom:18px}
+.msg-box.show{display:flex}
+.msg-box.error{background:rgba(255,68,68,.07);border:1px solid rgba(255,68,68,.22);color:#ffaaaa}
+.msg-box.success{background:rgba(0,214,143,.07);border:1px solid rgba(0,214,143,.22);color:#80ffd4}
+.msg-icon{font-size:14px;flex-shrink:0;margin-top:1px}
+
+/* ══════════════════════════════════════════
+   FOOTER
+══════════════════════════════════════════ */
+footer{text-align:center;padding:20px;font-size:11px;color:rgba(255,255,255,.25);position:relative;z-index:2}
+footer a{color:rgba(255,255,255,.35);text-decoration:none;transition:color .2s}
+footer a:hover{color:var(--w55)}
+
+/* ══════════════════════════════════════════
+   BADGE
+══════════════════════════════════════════ */
+.secure-badge{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--ok);border:1px solid rgba(0,214,143,.25);background:rgba(0,214,143,.07);padding:5px 13px;border-radius:100px;margin-bottom:20px}
+.sbdot{width:5px;height:5px;background:var(--ok);border-radius:50%;animation:blink 1.4s step-end infinite}
+@keyframes blink{50%{opacity:0}}
+
+/* ══════════════════════════════════════════
+   FLOAT LABEL (optional) + responsive
+══════════════════════════════════════════ */
+@media(max-width:480px){
+  .auth-card{border-radius:20px}
+  .ac-head{padding:28px 24px 0}
+  .tab-bar{margin:0 24px 24px}
+  .ac-body{padding:0 24px 28px}
+}
+
+/* ══════════════════════════════════════════
+   AMBIENT PARTICLES extra glow
+══════════════════════════════════════════ */
+@keyframes fu{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+
+<!-- Cursor -->
+<div class="cur" id="cur"></div>
+<div class="cur-r" id="cr"></div>
+
+<!-- Background -->
+<canvas id="pc"></canvas>
+<div class="gbg"></div>
+<div class="cglow" id="cglow"></div>
+<div class="rings">
+  <div class="ring"></div>
+  <div class="ring"></div>
+  <div class="ring"></div>
+</div>
+
+<!-- Nav -->
+<nav>
+  <a href="/" class="logo">
+    <div class="lhex">M</div>
+    Monetax
+  </a>
+  <a href="/" class="nav-back">
+    ← Voltar ao site
+  </a>
+</nav>
+
+<!-- Auth -->
+<div class="auth-wrap">
+  <div class="auth-card">
+
+    <!-- Head -->
+    <div class="ac-head">
+      <div class="ac-icon">🔐</div>
+      <div class="secure-badge"><span class="sbdot"></span> Conexão Segura</div>
+      <h1 class="ac-title">
+        Bem-vindo à <span class="glitch" data-text="Monetax">Monetax</span>
+      </h1>
+      <p class="ac-sub">Seu sistema de decisão financeira com IA.</p>
+    </div>
+
+    <!-- Tab bar -->
+    <div class="tab-bar">
+      <button class="tab-btn active" id="tab-login" onclick="switchTab('login')">Entrar</button>
+      <button class="tab-btn" id="tab-register" onclick="switchTab('register')">Criar Conta</button>
+    </div>
+
+    <!-- Body -->
+    <div class="ac-body">
+
+      <!-- Google OAuth -->
+      <button class="btn-google" onclick="handleGoogle()">
+        <svg class="g-logo" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+        </svg>
+        Continuar com Google
+      </button>
+
+      <div class="divider">
+        <div class="dline"></div>
+        <span class="dtxt">ou use seu e-mail</span>
+        <div class="dline"></div>
+      </div>
+
+      <!-- ════ LOGIN PANEL ════ -->
+      <div id="panel-login" class="panel active">
+
+        <div class="msg-box" id="login-msg">
+          <span class="msg-icon">⚠️</span>
+          <span id="login-msg-txt"></span>
+        </div>
+
+        <div class="field">
+          <div class="field-label">E-mail</div>
+          <div class="field-wrap">
+            <span class="field-icon">✉</span>
+            <input type="email" class="field-input" id="login-email" placeholder="seu@email.com" autocomplete="email">
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">
+            Senha
+            <a href="#" class="field-hint" onclick="switchTab('forgot'); return false">Esqueci a senha</a>
+          </div>
+          <div class="field-wrap">
+            <span class="field-icon" style="left:14px;pointer-events:none">🔑</span>
+            <input type="password" class="field-input" id="login-pass" placeholder="••••••••" autocomplete="current-password">
+            <button class="pwd-toggle" onclick="togglePwd('login-pass',this)" tabindex="-1">👁</button>
+          </div>
+        </div>
+
+        <div class="row-between">
+          <label class="check-wrap">
+            <input type="checkbox" class="check-box" id="remember">
+            <span class="check-label">Lembrar de mim</span>
+          </label>
+        </div>
+
+        <button class="btn-primary" id="btn-login" onclick="handleLogin()">
+          <div class="btn-shine"></div>
+          <span class="btn-text">Entrar na Monetax →</span>
+          <div class="spinner"></div>
+        </button>
+
+        <p class="terms-txt">
+          Ao entrar, você concorda com os <a href="/termos">Termos de Uso</a> e a <a href="/privacidade">Política de Privacidade</a> da Monetax.
+        </p>
+
+      </div><!-- /panel-login -->
+
+      <!-- ════ REGISTER PANEL ════ -->
+      <div id="panel-register" class="panel">
+
+        <div class="msg-box" id="register-msg">
+          <span class="msg-icon">⚠️</span>
+          <span id="register-msg-txt"></span>
+        </div>
+
+        <div class="field">
+          <div class="field-label">Nome completo</div>
+          <div class="field-wrap">
+            <span class="field-icon">👤</span>
+            <input type="text" class="field-input" id="reg-name" placeholder="Seu nome" autocomplete="name">
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">E-mail</div>
+          <div class="field-wrap">
+            <span class="field-icon">✉</span>
+            <input type="email" class="field-input" id="reg-email" placeholder="seu@email.com" autocomplete="email">
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">Senha</div>
+          <div class="field-wrap">
+            <span class="field-icon" style="pointer-events:none">🔑</span>
+            <input type="password" class="field-input" id="reg-pass" placeholder="Mínimo 8 caracteres" autocomplete="new-password" oninput="checkStrength(this)">
+            <button class="pwd-toggle" onclick="togglePwd('reg-pass',this)" tabindex="-1">👁</button>
+          </div>
+          <div class="pwd-strength" id="ps-bars">
+            <div class="ps-bar" id="psb1"></div>
+            <div class="ps-bar" id="psb2"></div>
+            <div class="ps-bar" id="psb3"></div>
+            <div class="ps-bar" id="psb4"></div>
+          </div>
+          <div class="ps-label" id="ps-label">Digite sua senha</div>
+        </div>
+
+        <label class="check-wrap" style="margin-bottom:24px;display:flex">
+          <input type="checkbox" class="check-box" id="terms-check">
+          <span class="check-label">Concordo com os <a href="/termos" style="color:var(--ab)">Termos</a> e <a href="/privacidade" style="color:var(--ab)">Privacidade</a></span>
+        </label>
+
+        <button class="btn-primary" id="btn-register" onclick="handleRegister()">
+          <div class="btn-shine"></div>
+          <span class="btn-text">Criar conta grátis →</span>
+          <div class="spinner"></div>
+        </button>
+
+        <p class="terms-txt">Sem cartão de crédito. Cancele quando quiser.</p>
+
+      </div><!-- /panel-register -->
+
+      <!-- ════ FORGOT PANEL ════ -->
+      <div id="panel-forgot" class="panel">
+
+        <div class="msg-box" id="forgot-msg">
+          <span class="msg-icon">ℹ️</span>
+          <span id="forgot-msg-txt"></span>
+        </div>
+
+        <p style="font-size:13px;color:var(--w55);line-height:1.7;margin-bottom:22px">Digite seu e-mail e enviaremos um link para redefinir sua senha.</p>
+
+        <div class="field">
+          <div class="field-label">E-mail cadastrado</div>
+          <div class="field-wrap">
+            <span class="field-icon">✉</span>
+            <input type="email" class="field-input" id="forgot-email" placeholder="seu@email.com">
+          </div>
+        </div>
+
+        <button class="btn-primary" id="btn-forgot" onclick="handleForgot()">
+          <div class="btn-shine"></div>
+          <span class="btn-text">Enviar link de redefinição</span>
+          <div class="spinner"></div>
+        </button>
+
+        <button onclick="switchTab('login')" style="width:100%;padding:13px;background:transparent;border:1px solid var(--bd);border-radius:12px;color:var(--w55);font-size:14px;font-weight:600;cursor:pointer;margin-top:12px;transition:all .2s" onmouseenter="this.style.borderColor='var(--w20)';this.style.color='#fff'" onmouseleave="this.style.borderColor='var(--bd)';this.style.color='var(--w55)'">← Voltar ao login</button>
+
+      </div><!-- /panel-forgot -->
+
+      <!-- Social proof -->
+      <div class="social-proof">
+        <div class="sp-avatars">
+          <div class="sp-av">G</div>
+          <div class="sp-av">R</div>
+          <div class="sp-av">A</div>
+          <div class="sp-av">F</div>
+        </div>
+        <p class="sp-txt"><strong>+2.400 pessoas</strong> já controlam<br>suas finanças com a Monetax</p>
+      </div>
+
+    </div><!-- /ac-body -->
+  </div><!-- /auth-card -->
+</div><!-- /auth-wrap -->
+
+<!-- Footer -->
+<footer>
+  © 2026 Monetax · <a href="/privacidade">Privacidade</a> · <a href="/termos">Termos</a>
+</footer>
+
+<script>
+
+/* ─── CHECK IF ALREADY LOGGED IN ─── */
+(function(){
+  const token = localStorage.getItem('sb-access-token');
+  if(token) window.location.replace('/app');
+})();
+
+/* ─── CURSOR ─── */
+const cur=document.getElementById('cur'),cr=document.getElementById('cr');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px';},{passive:true});
+(function loop(){rx+=(mx-rx)*.1;ry+=(my-ry)*.1;cr.style.left=rx+'px';cr.style.top=ry+'px';requestAnimationFrame(loop);})();
+document.querySelectorAll('button,a,.auth-card').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{cur.classList.add('ex');cr.classList.add('ex');});
+  el.addEventListener('mouseleave',()=>{cur.classList.remove('ex');cr.classList.remove('ex');});
+});
+
+/* ─── PARTICLES ─── */
+const canvas=document.getElementById('pc'),ctx=canvas.getContext('2d');
+let W,H,pts=[];
+function rsz(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+rsz();window.addEventListener('resize',rsz,{passive:true});
+class P{
+  constructor(){this.x=Math.random()*W;this.y=Math.random()*H;this.r=Math.random()*1.4+.3;this.vx=(Math.random()-.5)*.28;this.vy=(Math.random()-.5)*.28;this.a=Math.random()*.45+.1;this.blue=Math.random()<.65;}
+  upd(){this.x+=this.vx;this.y+=this.vy;if(this.x<0)this.x=W;if(this.x>W)this.x=0;if(this.y<0)this.y=H;if(this.y>H)this.y=0;}
+  draw(){ctx.beginPath();ctx.arc(this.x,this.y,this.r,0,Math.PI*2);ctx.fillStyle=this.blue?`rgba(77,148,255,${this.a})`:`rgba(255,255,255,${this.a*.45})`;ctx.fill();}
+}
+if(window.innerWidth>480){
+  for(let i=0;i<90;i++)pts.push(new P());
+  function drawLines(){for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<130){ctx.beginPath();ctx.moveTo(pts[i].x,pts[i].y);ctx.lineTo(pts[j].x,pts[j].y);ctx.strokeStyle=`rgba(26,108,255,${.08*(1-d/130)})`;ctx.lineWidth=.5;ctx.stroke();}}}
+  (function anim(){ctx.clearRect(0,0,W,H);pts.forEach(p=>{p.upd();p.draw();});drawLines();requestAnimationFrame(anim);})();
+}
+
+/* ─── PARALLAX GLOW ─── */
+if(window.matchMedia('(hover:hover)').matches){
+  window.addEventListener('mousemove',e=>{
+    const g=document.getElementById('cglow');
+    const x=(e.clientX/window.innerWidth-.5)*40,y=(e.clientY/window.innerHeight-.5)*30;
+    g.style.transform=`translate(calc(-50% + ${x}px),calc(-50% + ${y}px))`;
+  },{passive:true});
+}
+
+/* ─── MAGNETIC BUTTON ─── */
+if(window.matchMedia('(hover:hover)').matches){
+  document.querySelectorAll('.btn-primary').forEach(btn=>{
+    btn.addEventListener('mousemove',e=>{const r=btn.getBoundingClientRect();btn.style.transform=`translateY(-2px) translate(${(e.clientX-r.left-r.width/2)*.1}px,${(e.clientY-r.top-r.height/2)*.1}px)`;});
+    btn.addEventListener('mouseleave',()=>{btn.style.transform='';});
+  });
+}
+
+/* ─── TAB SWITCH ─── */
+function switchTab(tab){
+  ['login','register','forgot'].forEach(t=>{
+    document.getElementById('panel-'+t).classList.toggle('active',t===tab);
+    const btn=document.getElementById('tab-'+t);
+    if(btn)btn.classList.toggle('active',t===tab);
+  });
+  // reset msgs
+  document.querySelectorAll('.msg-box').forEach(m=>m.classList.remove('show','error','success'));
+}
+
+/* ─── PASSWORD TOGGLE ─── */
+function togglePwd(id,btn){
+  const inp=document.getElementById(id);
+  if(inp.type==='password'){inp.type='text';btn.textContent='🙈';}
+  else{inp.type='password';btn.textContent='👁';}
+}
+
+/* ─── PASSWORD STRENGTH ─── */
+function checkStrength(inp){
+  const v=inp.value;
+  let s=0;
+  if(v.length>=8)s++;
+  if(/[A-Z]/.test(v))s++;
+  if(/[0-9]/.test(v))s++;
+  if(/[^A-Za-z0-9]/.test(v))s++;
+  const bars=[1,2,3,4].map(i=>document.getElementById('psb'+i));
+  const labels=['','Fraca','Média','Boa','Forte'];
+  const colors=[,'s1','s2','s3','s4'];
+  bars.forEach((b,i)=>{b.className='ps-bar '+(i<s?colors[s]:'');});
+  const lbl=document.getElementById('ps-label');
+  lbl.textContent=v.length?labels[s]||'Digite sua senha':'Digite sua senha';
+  lbl.style.color=s===4?'var(--ok)':s===3?'var(--ok)':s===2?'var(--gold)':'var(--warn)';
+}
+
+/* ─── LOADING STATE ─── */
+function setLoading(btnId,loading){
+  const btn=document.getElementById(btnId);
+  btn.classList.toggle('loading',loading);
+}
+
+function showMsg(id,text,type='error'){
+  const box=document.getElementById(id);
+  const txt=document.getElementById(id+'-txt');
+  box.className='msg-box show '+type;
+  box.querySelector('.msg-icon').textContent=type==='error'?'⚠️':'✅';
+  txt.textContent=text;
+}
+
+/* ─── SUPABASE ─── */
+const SUPA_URL = 'https://osvnganjualyvhpghkem.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9zdm5nYW5qdWFseXZocGdoa2VtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3NzYwMzgsImV4cCI6MjA5MTM1MjAzOH0.cgZlAFSj6FYpoX-HB4I1YR9v5KiumRpSY0Q3yNueing';
+
+async function supaFetch(path, body, method='POST') {
+  const r = await fetch(SUPA_URL + path, {
+    method,
+    headers: { 'Content-Type': 'application/json', 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY },
+    body: JSON.stringify(body)
+  });
+  return r.json();
+}
+
+async function supaFetchAuth(path, body, method='POST') {
+  const r = await fetch(SUPA_URL + '/auth/v1' + path, {
+    method,
+    headers: { 'Content-Type': 'application/json', 'apikey': SUPA_KEY },
+    body: JSON.stringify(body)
+  });
+  return r.json();
+}
+
+function getRedirectTarget() {
+  const p = new URLSearchParams(window.location.search);
+  const plano = p.get('plano');
+  return '/onboarding' + (plano ? '?plano=' + plano : '');
+}
+
+/* ─── HANDLERS ─── */
+async function handleGoogle(){
+  const r = await fetch(SUPA_URL+'/auth/v1/authorize?provider=google&redirect_to='+encodeURIComponent(window.location.origin+'/auth/callback'), {method:'GET',redirect:'manual'});
+  // Use direct URL
+  window.location.href = SUPA_URL+'/auth/v1/authorize?provider=google&redirect_to='+encodeURIComponent(window.location.origin+'/auth/callback');
+}
+
+async function handleLogin(){
+  const email=document.getElementById('login-email').value.trim();
+  const pass=document.getElementById('login-pass').value;
+  document.getElementById('login-msg').classList.remove('show');
+  if(!email||!pass){showMsg('login-msg','Preencha e-mail e senha.');return;}
+  setLoading('btn-login',true);
+  try{
+    const data = await supaFetchAuth('/token?grant_type=password', {email, password:pass});
+    if(data.error||data.error_description){
+      showMsg('login-msg', data.error_description||data.error||'E-mail ou senha incorretos.');
+    } else {
+      localStorage.setItem('sb-access-token', data.access_token);
+      localStorage.setItem('sb-refresh-token', data.refresh_token);
+      // Check onboarding status
+      const profile = await fetch(SUPA_URL+'/rest/v1/profiles?select=onboarding_completed&id=eq.'+data.user.id, {
+        headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+data.access_token}
+      }).then(r=>r.json());
+      const completed = profile?.[0]?.onboarding_completed;
+      window.location.href = completed ? '/app' : getRedirectTarget();
+    }
+  } catch(e) {
+    showMsg('login-msg','Erro de conexão. Tente novamente.');
+  }
+  setLoading('btn-login',false);
+}
+
+async function handleRegister(){
+  const name=document.getElementById('reg-name').value.trim();
+  const email=document.getElementById('reg-email').value.trim();
+  const pass=document.getElementById('reg-pass').value;
+  const terms=document.getElementById('terms-check').checked;
+  document.getElementById('register-msg').classList.remove('show');
+  if(!name||!email||!pass){showMsg('register-msg','Preencha todos os campos.');return;}
+  if(pass.length<8){showMsg('register-msg','A senha deve ter pelo menos 8 caracteres.');return;}
+  if(!terms){showMsg('register-msg','Aceite os termos para continuar.');return;}
+  setLoading('btn-register',true);
+  try{
+    const data = await supaFetchAuth('/signup', {email, password:pass, data:{full_name:name}});
+    if(data.error||data.error_description){
+      showMsg('register-msg', data.error_description||data.error||'Erro ao criar conta.');
+    } else if(data.id && !data.access_token){
+      // Email confirmation required
+      showMsg('register-msg','Conta criada! Verifique seu e-mail para confirmar e depois faça login.','success');
+    } else if(data.access_token){
+      localStorage.setItem('sb-access-token', data.access_token);
+      localStorage.setItem('sb-refresh-token', data.refresh_token);
+      window.location.href = getRedirectTarget();
+    } else {
+      showMsg('register-msg','Conta criada! Verifique seu e-mail para ativar.','success');
+    }
+  } catch(e) {
+    showMsg('register-msg','Erro de conexão. Tente novamente.');
+  }
+  setLoading('btn-register',false);
+}
+
+async function handleForgot(){
+  const email=document.getElementById('forgot-email').value.trim();
+  document.getElementById('forgot-msg').classList.remove('show');
+  if(!email){showMsg('forgot-msg','Digite seu e-mail.');return;}
+  setLoading('btn-forgot',true);
+  try{
+    await fetch(SUPA_URL+'/auth/v1/recover', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','apikey':SUPA_KEY},
+      body:JSON.stringify({email, redirect_to: window.location.origin+'/auth/callback'})
+    });
+    showMsg('forgot-msg','Link enviado! Verifique sua caixa de entrada.','success');
+  } catch(e){
+    showMsg('forgot-msg','Erro. Tente novamente.');
+  }
+  setLoading('btn-forgot',false);
+}
+
+/* ─── INPUT ENTER KEY ─── */
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter'){
+    const active=['login','register','forgot'].find(t=>document.getElementById('panel-'+t).classList.contains('active'));
+    if(active==='login')handleLogin();
+    else if(active==='register')handleRegister();
+    else if(active==='forgot')handleForgot();
+  }
+});
+</script>
+</body>
+</html>

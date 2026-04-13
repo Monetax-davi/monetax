@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Monetax — Autenticando...</title>
+<style>
+:root{--bg:#030508;--a:#1a6cff;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:#fff;font-family:ui-sans-serif,system-ui,sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px}
+.lhex{width:44px;height:44px;background:var(--a);clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;animation:lp 1.5s ease-in-out infinite;box-shadow:0 0 28px rgba(26,108,255,.8)}
+@keyframes lp{0%,100%{box-shadow:0 0 18px rgba(26,108,255,.6)}50%{box-shadow:0 0 40px rgba(26,108,255,1),0 0 70px rgba(26,108,255,.4)}}
+p{font-size:14px;color:rgba(255,255,255,.5)}
+</style>
+</head>
+<body>
+<div class="lhex">M</div>
+<p>Autenticando sua conta...</p>
+<script>
+const SUPA_URL = 'https://osvnganjualyvhpghkem.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9zdm5nYW5qdWFseXZocGdoa2VtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3NzYwMzgsImV4cCI6MjA5MTM1MjAzOH0.cgZlAFSj6FYpoX-HB4I1YR9v5KiumRpSY0Q3yNueing';
+
+async function handleCallback() {
+  // Handle hash-based tokens (OAuth)
+  const hash = window.location.hash.substring(1);
+  const params = new URLSearchParams(hash);
+  const accessToken = params.get('access_token');
+  const refreshToken = params.get('refresh_token');
+  const type = params.get('type');
+
+  // Handle query-based tokens (email confirmation/recovery)
+  const query = new URLSearchParams(window.location.search);
+  const code = query.get('code');
+
+  if (accessToken) {
+    localStorage.setItem('sb-access-token', accessToken);
+    if(refreshToken) localStorage.setItem('sb-refresh-token', refreshToken);
+    
+    if(type === 'recovery') {
+      window.location.replace('/auth?reset=1');
+      return;
+    }
+
+    // Check onboarding
+    try {
+      const r = await fetch(SUPA_URL+'/auth/v1/user', {
+        headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+accessToken}
+      });
+      const user = await r.json();
+      
+      const profile = await fetch(SUPA_URL+'/rest/v1/profiles?select=onboarding_completed&id=eq.'+user.id, {
+        headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+accessToken}
+      }).then(r=>r.json());
+      
+      const completed = profile?.[0]?.onboarding_completed;
+      window.location.replace(completed ? '/app' : '/onboarding');
+    } catch(e) {
+      window.location.replace('/onboarding');
+    }
+    return;
+  }
+
+  if (code) {
+    // Exchange code for session
+    try {
+      const r = await fetch(SUPA_URL+'/auth/v1/token?grant_type=pkce', {
+        method:'POST',
+        headers:{'Content-Type':'application/json','apikey':SUPA_KEY},
+        body:JSON.stringify({auth_code:code})
+      });
+      const data = await r.json();
+      if(data.access_token) {
+        localStorage.setItem('sb-access-token', data.access_token);
+        if(data.refresh_token) localStorage.setItem('sb-refresh-token', data.refresh_token);
+        window.location.replace('/onboarding');
+        return;
+      }
+    } catch(e) {}
+  }
+
+  // Fallback
+  window.location.replace('/auth');
+}
+
+handleCallback();
+</script>
+</body>
+</html>
