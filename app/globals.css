@@ -24,3 +24,7 @@ body {
 }
 
 .font-display { font-family: 'Syne', sans-serif; }
+/* Adicionar ao globals.css */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
