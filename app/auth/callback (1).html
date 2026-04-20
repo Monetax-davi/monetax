@@ -1,0 +1,26 @@
+<!DOCTYPE html><html lang="pt-BR"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Monetax — Autenticando...</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{background:#030508;color:#fff;font-family:ui-sans-serif,sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px}.hex{width:48px;height:48px;background:#1a6cff;clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:18px;animation:p 1.5s ease-in-out infinite;box-shadow:0 0 30px rgba(26,108,255,.8)}@keyframes p{0%,100%{box-shadow:0 0 18px rgba(26,108,255,.6)}50%{box-shadow:0 0 40px rgba(26,108,255,1)}}p{font-size:14px;color:rgba(255,255,255,.5)}</style>
+</head><body>
+<div class="hex">M</div><p>Autenticando sua conta...</p>
+<script>
+const SU='https://osvnganjualyvhpghkem.supabase.co',SK='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9zdm5nYW5qdWFseXZocGdoa2VtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3NzYwMzgsImV4cCI6MjA5MTM1MjAzOH0.cgZlAFSj6FYpoX-HB4I1YR9v5KiumRpSY0Q3yNueing';
+async function go(){
+  const hash=new URLSearchParams(location.hash.slice(1));
+  const at=hash.get('access_token'),rt=hash.get('refresh_token'),type=hash.get('type');
+  if(at){
+    localStorage.setItem('sb-access-token',at);
+    if(rt)localStorage.setItem('sb-refresh-token',rt);
+    if(type==='recovery'){location.replace('/auth?reset=1');return;}
+    try{
+      const u=await fetch(SU+'/auth/v1/user',{headers:{'apikey':SK,'Authorization':'Bearer '+at}}).then(r=>r.json());
+      const pr=await fetch(SU+'/rest/v1/profiles?select=onboarding_completed&id=eq.'+u.id,{headers:{'apikey':SK,'Authorization':'Bearer '+at}}).then(r=>r.json());
+      location.replace(pr?.[0]?.onboarding_completed?'/app':'/onboarding');
+    }catch{location.replace('/onboarding');}
+    return;
+  }
+  location.replace('/auth');
+}
+go();
+</script></body></html>
