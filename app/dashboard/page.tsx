@@ -11,6 +11,11 @@ const TopCategoriesClient = dynamic(
   { ssr: false, loading: () => <WidgetSkeleton /> }
 )
 
+const AutonomoWidgets = dynamic(
+  () => import('./components/autonomo/AutonomoWidgets').then(m => m.AutonomoWidgets),
+  { ssr: false, loading: () => <WidgetSkeleton /> }
+)
+
 type Profile = {
   name: string | null
   email: string | null
@@ -92,8 +97,9 @@ export default function DashboardPage() {
 
   const firstName = (profile?.name || 'Usuário').split(' ')[0]
   const fase      = faseInfo[profile?.cdf_phase || 'controle']
-  const userType  = profile?.user_type ?? 'pessoal'
-  const isPessoal = userType === 'pessoal'
+  const userType   = profile?.user_type ?? 'pessoal'
+  const isPessoal  = userType === 'pessoal'
+  const isAutonomo = userType === 'autonomo'
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
@@ -189,10 +195,16 @@ export default function DashboardPage() {
         </div>
 
         {/* ── WIDGET PESSOAL: Top Categorias ──────────────────────────── */}
-        {/* Conditional rendering: só visível para userType === 'pessoal' */}
         {isPessoal && userId && (
           <div style={{ marginBottom: 28 }}>
             <TopCategoriesClient userId={userId} />
+          </div>
+        )}
+
+        {/* ── WIDGETS AUTÔNOMO: Caixa + Serviços + Atendimentos ─────────── */}
+        {isAutonomo && userId && (
+          <div style={{ marginBottom: 28 }}>
+            <AutonomoWidgets userId={userId} />
           </div>
         )}
 
