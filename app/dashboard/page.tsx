@@ -3,14 +3,22 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import dynamic from 'next/dynamic'
+import type { UserType, PlanType } from '@/lib/types/dashboard'
+
+const TopCategoriesClient = dynamic(
+  () => import('./components/pessoal/TopCategoriesClient').then(m => m.TopCategoriesClient),
+  { ssr: false, loading: () => <WidgetSkeleton /> }
+)
 
 type Profile = {
   name: string | null
   email: string | null
-  plan: string
+  plan: PlanType
   cdf_phase: string
   monthly_income: number
   financial_goal: string | null
+  user_type: UserType
 }
 
 const faseInfo: Record<string, { label: string; cor: string; emoji: string }> = {
@@ -28,9 +36,22 @@ const navItems = [
   { ico: '📊', label: 'Relatórios', ativo: false },
 ]
 
+function WidgetSkeleton() {
+  return (
+    <div style={{
+      background: 'var(--bg-card)', border: '1px solid var(--border)',
+      borderRadius: 16, padding: '22px 20px', height: 180,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+    }}>
+      <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.3)' }}>Carregando categorias...</span>
+    </div>
+  )
+}
+
 export default function DashboardPage() {
   const router = useRouter()
   const [profile, setProfile] = useState<Profile | null>(null)
+  const [userId,  setUserId]  = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -39,10 +60,11 @@ export default function DashboardPage() {
       if (!data.user) { router.push('/login'); return }
       const { data: p } = await supabase
         .from('profiles')
-        .select('*')
+        .select('name, email, plan, cdf_phase, monthly_income, financial_goal, user_type')
         .eq('id', data.user.id)
         .single()
-      setProfile(p)
+      setProfile(p as Profile)
+      setUserId(data.user.id)
       setLoading(false)
     })
   }, [router])
@@ -69,7 +91,9 @@ export default function DashboardPage() {
   )
 
   const firstName = (profile?.name || 'Usuário').split(' ')[0]
-  const fase = faseInfo[profile?.cdf_phase || 'controle']
+  const fase      = faseInfo[profile?.cdf_phase || 'controle']
+  const userType  = profile?.user_type ?? 'pessoal'
+  const isPessoal = userType === 'pessoal'
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
@@ -82,7 +106,6 @@ export default function DashboardPage() {
         <div className="font-display" style={{ fontSize: 20, fontWeight: 800, padding: '4px 8px', marginBottom: 32 }}>
           Moneta<span style={{ color: 'var(--blue)' }}>X</span>
         </div>
-
         <nav style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1 }}>
           {navItems.map(item => (
             <button key={item.label} style={{
@@ -98,24 +121,18 @@ export default function DashboardPage() {
             </button>
           ))}
         </nav>
-
-        {/* User card */}
         <div style={{
           padding: '14px', background: 'rgba(255,255,255,0.04)',
           borderRadius: 12, border: '1px solid var(--border)'
         }}>
           <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>{firstName}</div>
-          <div style={{
-            fontSize: 11, color: 'var(--text-muted)', marginBottom: 12,
-            textTransform: 'capitalize'
-          }}>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 12, textTransform: 'capitalize' }}>
             Plano {profile?.plan || 'free'}
           </div>
           <button onClick={logout} style={{
             width: '100%', padding: '8px 0', borderRadius: 8,
             border: '1px solid rgba(255,255,255,0.08)', background: 'transparent',
-            color: 'var(--text-muted)', fontSize: 12, cursor: 'pointer',
-            transition: 'all 0.15s'
+            color: 'var(--text-muted)', fontSize: 12, cursor: 'pointer', transition: 'all 0.15s'
           }}>
             Sair
           </button>
@@ -126,9 +143,7 @@ export default function DashboardPage() {
       <main style={{ marginLeft: 224, padding: '36px 40px', minHeight: '100vh' }}>
         {/* Header */}
         <div style={{ marginBottom: 36 }}>
-          <h1 className="font-display" style={{
-            fontSize: 28, fontWeight: 800, letterSpacing: '-0.5px', marginBottom: 8
-          }}>
+          <h1 className="font-display" style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.5px', marginBottom: 8 }}>
             Olá, {firstName} 👋
           </h1>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -152,54 +167,46 @@ export default function DashboardPage() {
           gap: 16, marginBottom: 32
         }}>
           {[
-            { label: 'Saldo do mês', valor: 'R$0,00', sub: 'Sem transações ainda', cor: 'var(--blue)', ico: '💰' },
-            { label: 'Receitas', valor: 'R$0,00', sub: 'Nenhuma receita', cor: 'var(--green)', ico: '📈' },
-            { label: 'Despesas', valor: 'R$0,00', sub: 'Nenhuma despesa', cor: '#ff6b6b', ico: '📉' },
-            { label: 'Meta do mês', valor: '0%', sub: 'Configure suas metas', cor: '#ffd166', ico: '🎯' },
+            { label: 'Saldo do mês',  valor: 'R$0,00', sub: 'Sem transações ainda', cor: 'var(--blue)', ico: '💰' },
+            { label: 'Receitas',      valor: 'R$0,00', sub: 'Nenhuma receita',       cor: 'var(--green)', ico: '📈' },
+            { label: 'Despesas',      valor: 'R$0,00', sub: 'Nenhuma despesa',       cor: '#ff6b6b', ico: '📉' },
+            { label: 'Meta do mês',   valor: '0%',     sub: 'Configure suas metas', cor: '#ffd166', ico: '🎯' },
           ].map(card => (
             <div key={card.label} style={{
               background: 'var(--bg-card)', border: '1px solid var(--border)',
               borderRadius: 16, padding: '22px 20px'
             }}>
-              <div style={{
-                display: 'flex', justifyContent: 'space-between',
-                alignItems: 'flex-start', marginBottom: 14
-              }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
                 <span style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 500 }}>{card.label}</span>
-                <div style={{
-                  width: 32, height: 32, borderRadius: 8,
-                  background: `${card.cor}15`,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center'
-                }}>
+                <div style={{ width: 32, height: 32, borderRadius: 8, background: `${card.cor}15`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <span style={{ fontSize: 14 }}>{card.ico}</span>
                 </div>
               </div>
-              <div className="font-display" style={{
-                fontSize: 24, fontWeight: 800, color: card.cor, marginBottom: 4
-              }}>
-                {card.valor}
-              </div>
+              <div className="font-display" style={{ fontSize: 24, fontWeight: 800, color: card.cor, marginBottom: 4 }}>{card.valor}</div>
               <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{card.sub}</div>
             </div>
           ))}
         </div>
 
-        {/* Empty state */}
+        {/* ── WIDGET PESSOAL: Top Categorias ──────────────────────────── */}
+        {/* Conditional rendering: só visível para userType === 'pessoal' */}
+        {isPessoal && userId && (
+          <div style={{ marginBottom: 28 }}>
+            <TopCategoriesClient userId={userId} />
+          </div>
+        )}
+
+        {/* CTA / Empty state */}
         <div style={{
           background: 'linear-gradient(135deg, rgba(26,108,255,0.07) 0%, rgba(0,214,143,0.03) 100%)',
           border: '1px solid rgba(26,108,255,0.18)',
           borderRadius: 20, padding: '48px 40px', textAlign: 'center'
         }}>
           <div style={{ fontSize: 44, marginBottom: 16 }}>🚀</div>
-          <h2 className="font-display" style={{
-            fontSize: 22, fontWeight: 800, marginBottom: 10
-          }}>
+          <h2 className="font-display" style={{ fontSize: 22, fontWeight: 800, marginBottom: 10 }}>
             Bem-vindo ao MonetaX!
           </h2>
-          <p style={{
-            color: 'var(--text-muted)', fontSize: 15, lineHeight: 1.65,
-            maxWidth: 420, margin: '0 auto 28px'
-          }}>
+          <p style={{ color: 'var(--text-muted)', fontSize: 15, lineHeight: 1.65, maxWidth: 420, margin: '0 auto 28px' }}>
             Adicione sua primeira transação para ativar o Copiloto IA e começar sua jornada de{' '}
             <span style={{ color: fase.cor, fontWeight: 600 }}>{fase.label}</span>.
           </p>
