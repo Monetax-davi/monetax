@@ -4,6 +4,25 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
+// Mapeia financial_goal → userType
+// Lógica invisível — sem impacto visual ou de fluxo
+function deriveUserType(financialGoal: string): 'pessoal' | 'autonomo' | 'negocio' {
+  // Mapeamento baseado na intenção declarada no step "meta"
+  // Todos os goals do onboarding atual são perfis pessoais
+  // autonomo/negocio serão detectados por goals futuros ou upgrade manual
+  const map: Record<string, 'pessoal' | 'autonomo' | 'negocio'> = {
+    sair_dividas: 'pessoal',
+    reserva:      'pessoal',
+    investir:     'pessoal',
+    organizar:    'pessoal',
+    // extensível: goals futuros podem mapear para autonomo/negocio
+    faturar:      'autonomo',
+    empresa:      'negocio',
+  }
+  return map[financialGoal] ?? 'pessoal' // fallback garantido: nunca null
+}
+
+
 const steps = [
   {
     id: 'meta',
@@ -82,6 +101,18 @@ export default function OnboardingPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { router.push('/login'); return }
 
+    // Derivar userType a partir das respostas — nunca salva null
+    const derivedUserType = deriveUserType(respostas.financial_goal ?? '')
+
+    // Verificar se usuário já tem userType salvo (não sobrescrever)
+    const { data: existingProfile } = await supabase
+      .from('profiles')
+      .select('user_type')
+      .eq('id', user.id)
+      .single()
+
+    const userTypeToSave = existingProfile?.user_type ?? derivedUserType
+
     const { error } = await supabase.from('profiles').upsert({
       id: user.id,
       email: user.email,
@@ -89,6 +120,7 @@ export default function OnboardingPage() {
       financial_goal: respostas.financial_goal,
       monthly_income: parseFloat(respostas.monthly_income),
       cdf_phase: respostas.cdf_phase,
+      user_type: userTypeToSave,
       onboarding_completed: true,
       updated_at: new Date().toISOString()
     })
