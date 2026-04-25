@@ -3,6 +3,9 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { usePlan } from '@/lib/hooks/use-plan'
+import { PlanBanner } from './components/shared/PlanBanner'
+import { LockedFeature } from './components/shared/LockedFeature'
 import dynamic from 'next/dynamic'
 import type { UserType, PlanType } from '@/lib/types/dashboard'
 
@@ -63,6 +66,7 @@ export default function DashboardPage() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [userId,  setUserId]  = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const { plan, canAccess }   = usePlan()
 
   useEffect(() => {
     const supabase = createClient()
@@ -173,6 +177,9 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        {/* Banner de upgrade — visível para free e monthly */}
+        <PlanBanner plan={plan} />
+
         {/* Cards de resumo */}
         <div style={{
           display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
@@ -210,14 +217,18 @@ export default function DashboardPage() {
         {/* ── WIDGETS AUTÔNOMO: Caixa + Serviços + Atendimentos ─────────── */}
         {isAutonomo && userId && (
           <div style={{ marginBottom: 28 }}>
-            <AutonomoWidgets userId={userId} />
+            <LockedFeature plan={plan} feature='autonomo_widgets'>
+              <AutonomoWidgets userId={userId} />
+            </LockedFeature>
           </div>
         )}
 
         {/* ── WIDGETS NEGÓCIO: P&L + Gráfico + Comparação mensal ──────────── */}
         {isNegocio && userId && (
           <div style={{ marginBottom: 28 }}>
-            <NegocioWidgets userId={userId} />
+            <LockedFeature plan={plan} feature='negocio_widgets'>
+              <NegocioWidgets userId={userId} />
+            </LockedFeature>
           </div>
         )}
 
