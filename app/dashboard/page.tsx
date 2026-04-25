@@ -16,6 +16,11 @@ const AutonomoWidgets = dynamic(
   { ssr: false, loading: () => <WidgetSkeleton /> }
 )
 
+const NegocioWidgets = dynamic(
+  () => import('./components/negocio/NegocioWidgets').then(m => m.NegocioWidgets),
+  { ssr: false, loading: () => <WidgetSkeleton /> }
+)
+
 type Profile = {
   name: string | null
   email: string | null
@@ -100,6 +105,7 @@ export default function DashboardPage() {
   const userType   = profile?.user_type ?? 'pessoal'
   const isPessoal  = userType === 'pessoal'
   const isAutonomo = userType === 'autonomo'
+  const isNegocio  = userType === 'negocio'
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
@@ -205,6 +211,13 @@ export default function DashboardPage() {
         {isAutonomo && userId && (
           <div style={{ marginBottom: 28 }}>
             <AutonomoWidgets userId={userId} />
+          </div>
+        )}
+
+        {/* ── WIDGETS NEGÓCIO: P&L + Gráfico + Comparação mensal ──────────── */}
+        {isNegocio && userId && (
+          <div style={{ marginBottom: 28 }}>
+            <NegocioWidgets userId={userId} />
           </div>
         )}
 
